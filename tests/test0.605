@@ -1,0 +1,9 @@
+var x := 2, y:=21;
+var z := 3;
+let y := z-1;
+
+if x == y then
+       let z := x/y; // do not print this
+else
+       let z := x+z; // let you not be seen ++--
+fi;
