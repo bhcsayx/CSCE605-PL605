@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "scanner.h"
+
 int main(int argc, char *argv[]) {
 
     if(argc < 2) {
@@ -29,6 +31,15 @@ int main(int argc, char *argv[]) {
     read(input_fd, raw_input, size);
 
     // printf("source: %s\n", raw_input);
+    // enum Token* tokens = (enum Token*) malloc(size);
+    int *tokens = scan(raw_input);
+    // int i = 0;
+    // while(1) {
+    //     if(*(tokens+i) == 255)
+    //         break;
+    //     printf("%d ", *(tokens+i));
+    //     i++;
+    // }
 
     exit(0);
 }
