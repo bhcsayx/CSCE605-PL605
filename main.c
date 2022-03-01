@@ -5,12 +5,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "scanner.h"
+#include "include/scanner.h"
 
 int main(int argc, char *argv[]) {
 
     if(argc < 2) {
-        printf("Usage: pl605 <input file> .\n");
+        printf("Usage: ./pl605 <input file> .\n");
         exit(-1);
     }
 
@@ -25,13 +25,13 @@ int main(int argc, char *argv[]) {
     struct stat file_meta;
     fstat(input_fd, &file_meta);
     off_t size = file_meta.st_size;
-
     // printf("Input file size: %ld\n", size);
+    
     char *raw_input = (char*) malloc(size);
     read(input_fd, raw_input, size);
-
     // printf("source: %s\n", raw_input);
-    // enum Token* tokens = (enum Token*) malloc(size);
+
+
     int *tokens = scan(raw_input);
     // int i = 0;
     // while(1) {
