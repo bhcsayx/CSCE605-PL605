@@ -51,6 +51,13 @@ enum Token {
     eofToken=255
 };
 
+struct scanResult {
+    enum Token* tokens;
+    const char** ids;
+    int *numbers;
+};
+
+
 enum Token* scan(char *input);
 int scan_for_op(char *input);
 int scan_for_keyword(char *input);
