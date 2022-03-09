@@ -16,7 +16,7 @@ int token_length(enum Token input) {
         0,0,0,0,0,0,1,0, 0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0, 4,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0
@@ -174,7 +174,7 @@ struct tokenStream scan(char *input){
                 i++;
             line_number++;
         }
-        while(*(input+i) == ' ' || *(input+i) == '\n'){
+        while(*(input+i) == ' ' || *(input+i) == '\n' || *(input+i) == '\t'){
             if(*(input+i) == '\n')
                 line_number++;
             i++;
@@ -219,8 +219,8 @@ struct tokenStream scan(char *input){
         }
         
         else {
-            // printf("%d, %c\n, ", i, input[i]);
-            if(*(input+i) == '/' && *(input+i+1) == '/')
+            printf("%d, %d\n", i, input[i]);
+            if(*(input+i) == '/' && *(input+i+1) == '/' || *(input+i) == ' ' || *(input+i) == '\n' || *(input+i) == '\t' || *(input+i) == '\r')
                 continue;
             printf("scanner error at line: %d, exiting...\n", line_number);
             exit(-1);

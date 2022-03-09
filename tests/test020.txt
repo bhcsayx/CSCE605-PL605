@@ -1,0 +1,17 @@
+// Array testing
+main
+array [ 5 ][ 10 ][ 15 ]a;
+var b, c, d;
+function foo( );
+{
+	return 10
+};
+{
+	let b := 1;
+	let c := 19;
+	let a[ 4 ][ 9 ][ 1 + call foo( ) ] := 45;
+	let d := a[ 4 ][ 9 ][ call foo( ) + 1 ] + 2;
+	
+	call outputnum(a[ 4 ][ 9 ][ 1 + call foo( ) ])
+}
+.
