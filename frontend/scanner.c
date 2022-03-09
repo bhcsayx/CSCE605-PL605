@@ -160,18 +160,27 @@ int scan_for_id(char *input){
     return len;
 }
 
-enum Token* scan(char *input){
+struct tokenStream scan(char *input){
     
-    int i = 0, j = 0; 
+    int i = 0, j = 0, i_int = 0, i_id = 0, line_number = 1; 
     int len = strlen(input);
     int* output = (int *) malloc(len * 4);
+    int* numbers = (int *) malloc(len * 4);
+    char **ids = (char **) malloc(len);
     while(i < len) {
+
         if(*(input+i) == '/' && *(input+i+1) == '/') { // skipping comment
             while(*(input+i) != '\n')
                 i++;
+            line_number++;
         }
-        while(*(input+i) == ' ' || *(input+i) == '\n')
+        while(*(input+i) == ' ' || *(input+i) == '\n'){
+            if(*(input+i) == '\n')
+                line_number++;
             i++;
+        }
+            
+        
         int status = 0;
         if((status = scan_for_op(input+i)) != 0) {
             // printf("match an op: %d\n", status);
@@ -190,6 +199,9 @@ enum Token* scan(char *input){
         else if((status = scan_for_number(input+i)) != 0) {
             // printf("match a number\n");
             output[j++] = number;
+            char tmp_int[status];
+            strncpy(tmp_int, input+i, status);
+            numbers[i_int++] = atoi((const char*)tmp_int);
             i += status;
             // printf("current pos: %d\n", i);
         }
@@ -200,21 +212,35 @@ enum Token* scan(char *input){
             //     printf("%c", input[k]);
             // printf("\n");
             output[j++] = ident;
+            ids[i_id] = (char *) malloc(status);
+            strncpy(ids[i_id++], input+i, status);
             i += status;
             // printf("current pos: %d\n", i);
         }
         
+        else {
+            // printf("%d, %c\n, ", i, input[i]);
+            if(*(input+i) == '/' && *(input+i+1) == '/')
+                continue;
+            printf("scanner error at line: %d, exiting...\n", line_number);
+            exit(-1);
+        }
+        // printf("%d, ", line_number);
     }
     output[j++] = eofToken;
 
-    // for(int i=0; i<j; i++) {
-    //     printf("%d ", output[i]);
-    //     if(i % 16 == 15)
-    //         printf("\n");
-    // }
-    // printf("\n");
     output = realloc(output, sizeof(int) * (j+1));
+    numbers = realloc(numbers, sizeof(int) * (i_int+1));
+    ids = realloc(ids, sizeof(char*) * (i_id+1));
+    
+    struct tokenStream result;
+    result.tokens = output;
+    result.numbers = numbers;
+    result.ids = ids;
+    result.token_len = j;
+    result.int_len = i_int;
+    result.id_len = i_id;
 
-    return output;
+    return result;
 
 }

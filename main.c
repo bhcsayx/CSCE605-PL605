@@ -32,14 +32,20 @@ int main(int argc, char *argv[]) {
     // printf("source: %s\n", raw_input);
 
 
-    int *tokens = scan(raw_input);
-    // int i = 0;
-    // while(1) {
-    //     if(*(tokens+i) == 255)
-    //         break;
-    //     printf("%d ", *(tokens+i));
-    //     i++;
+    struct tokenStream stream = scan(raw_input);
+
+    // for(int i=0; i<stream.token_len; i++){
+    //     printf("%d ", stream.tokens[i]);
     // }
+    // printf("\n");
+    // for(int i=0; i<stream.int_len; i++){
+    //     printf("%d ", stream.numbers[i]);
+    // }
+    // printf("\n");
+    // for(int i=0; i<stream.id_len; i++){
+    //     printf("%s ", stream.ids[i]);
+    // }
+    
 
     exit(0);
 }
