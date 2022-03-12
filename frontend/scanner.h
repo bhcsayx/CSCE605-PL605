@@ -48,6 +48,7 @@ enum Token {
     funcToken,
     beginToken=150,
     mainToken=200,
+    blankToken, // token for placeholder in some AST fields
     eofToken=255
 };
 

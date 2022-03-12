@@ -2,65 +2,59 @@
 #include "parser.h"
 
 int parseCursor = 0;
+int idCursor = 0;
 
-// struct parseTreeNode* parseVarDecls(tokenStream stream) {
+struct typeDeclAST parseTypeDecl(struct tokenStream stream) {
 
-//     struct parseTreeNode* vars = malloc(sizeof(struct parseTreeNode));
-//     vars.type = varDecls;
-//     vars.childNum = 0;
-//     vars.children = 
+    struct typeDeclAST type;
+    if(get(stream, &parseCursor) == varToken)
+        type.type = 0;
+    else if(get(stream, &parseCursor) == arrayToken) {
+        type.type = 1;
+    }
+    return type;
 
-//     return NULL;
-// }
+}
 
-// struct parseTreeNode* parseFuncDecls(tokenStream stream) {
-//     return NULL;
-// }
+char* parseIdent(struct tokenStream) {
+    expect(tokenStream, &parseCursor, ident);
+    char* dest = (char*) malloc(strlen(tokenStream.ids[idCursor]));
+    strncpy(dest, tokenStream.ids[idCursor], strlen(tokenStream.ids[idCursor++]));
+    return dest;
+}
 
-// struct parseTreeNode* parse(tokenStream stream) {
+struct varDeclAST* parseVarDecls(struct tokenStream stream) {
 
-//     struct parseTreeNode* root = malloc(sizeof(struct parseTreeNode));
-//     root.type = computation;
-//     root.childNum = 0;
-//     root.children = malloc(sizeof(struct parseTreeNode*) * 3);
-    
-//     expect(stream, &parseCursor, mainToken);
-//     enum Token next = get(stream, &parseCursor);
-//     if(next == varToken || next == arrayToken) {
-//         struct parseTreeNode* vars = parseVarDecls(stream);
-//         root.children[root.childNum++] = vars;
-//     }
-    
-//     // next = get(stream, &parseCursor);
-//     // if(next == voidToken || next = funcToken) {
-//     //     struct parseTreeNode* funcs = parseFuncDecls(stream);
-//     //     root.children[root.childNum++] = funcs;
-//     // }
+    struct varDeclAST* vars = (struct varDeclAST*) malloc(sizeof(varDeclAST));
+    vars->type = parseTypeDecl(stream);
+    vars->name = parseIdent(stream);
+    vars->next = NULL;
+    struct varDeclAST* cur = vars;
+    while(get(stream, &parseCursor) == commaToken) {
+        expect(stream, &parseCursor, commaToken);
+        cur->next = (struct varDeclAST*) malloc(sizeof(varDeclAST));
+        cur->next->type = vars->type;
+        cur->next->name = parseIdent(stream);
+        cur->next->next= NULL;
+        cur = cur->next;
+    }
+    expect(stream, &parseCursor, semiToken);
 
-//     expect(stream, &parseCursor, beginToken);
-//     struct stats = parseStatSequence(stream);
-//     root.children[root.childNum++] = stats;
+    if(get(stream, &parseCursor) == varToken || get(stream, &parseCursor) == arrayToken)
+        cur->next = parseVarDecls(stream);
 
-//     expect(stream, &parseCursor, endToken);
-//     expect(stream, &parseCursor, periodToken);
-//     expect(stream, &parseCursor, eofToken);
-//     printf("parse success.");
-
-//     return root;
-// }
-
-
+    return vars;
+}
 
 struct computationAST* parse(tokenStream stream) {
 
     struct computationAST* root = (struct computationAST*) malloc(sizeof(computationAST));
-    root.varLen = root.funcsLen = root.statsLen = 0;
 
     expect(stream, &parseCursor, mainToken);
     enum Token next = get(stream, &parseCursor);
     if(next == varToken || next == arrayToken) {
         struct varDeclAST* vars = parseVarDecls(stream);
-        root.vars = vars;
+        root->vars = vars;
     }
 
     // next = get(stream, &parseCursor);
@@ -70,7 +64,7 @@ struct computationAST* parse(tokenStream stream) {
     // }
 
     expect(stream, &parseCursor, beginToken);
-    struct statAST* stats = parseStatSequence(stream);
+    root->stats = parseStatSequence(stream);
 
     expect(stream, &parseCursor, endToken);
     expect(stream, &parseCursor, periodToken);
