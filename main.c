@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "scanner.h"
+#include "parser.h"
 
 int main(int argc, char *argv[]) {
 
