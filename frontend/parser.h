@@ -1,3 +1,6 @@
+#ifndef PARSER_H
+#define PARSER_H
+
 #include <stdio.h>
 #include "scanner.h"
 
@@ -95,3 +98,5 @@ struct stmtAST* parseAssign(struct tokenStream stream);
 struct stmtAST* parseCall(struct tokenStream stream);
 struct stmtAST* parseStmt(struct tokenStream stream);
 struct stmtSeqAST* parseStmtSequence(struct tokenStream stream);
+
+#endif

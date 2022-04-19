@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "parser.h"
 
 int parseCursor = 0;
@@ -47,7 +49,7 @@ char* parseIdent(struct tokenStream stream) {
 char* parseNumber(struct tokenStream stream) {
     expect(stream, &parseCursor, number);
     char* dest = (char*) malloc(sizeof(int));
-    strncpy(dest, stream.numbers+numCursor, sizeof(int));
+    strncpy(dest, &(stream.numbers[numCursor]), sizeof(int));
     numCursor++;
     printf("num: %d\n", *(int*)dest);
     return dest;
@@ -180,7 +182,9 @@ struct desiAST* parseDesi(struct tokenStream stream) {
     struct desiAST* res = (struct desiAST*) malloc(sizeof(struct desiAST));
     res->id = parseIdent(stream);
     res->expr = NULL;
+    res->type = 0;
     if(get(stream, &parseCursor) == openbracketToken) {
+        res->type = 1;
         expect(stream, &parseCursor, openbracketToken);
         res->expr = parseExpr(stream);
         expect(stream, &parseCursor, closebracketToken);

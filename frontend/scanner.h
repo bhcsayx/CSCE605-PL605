@@ -1,3 +1,6 @@
+#ifndef SCANNER_H
+#define SCANNER_H
+
 #include <stdio.h>
 
 enum Token {
@@ -48,6 +51,9 @@ enum Token {
     funcToken,
     beginToken=150,
     mainToken=200,
+    readToken,
+    writeToken,
+    writeNLToken,
     blankToken, // token for placeholder in some AST fields
     eofToken=255
 };
@@ -67,3 +73,5 @@ int scan_for_op(char *input);
 int scan_for_keyword(char *input);
 int scan_for_number(char *input);
 int scan_for_id(char *input);
+
+#endif

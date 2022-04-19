@@ -1,10 +1,12 @@
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "frontend/scanner.h"
 #include "frontend/parser.h"
 
 int main(int argc, char *argv[]) {
