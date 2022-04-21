@@ -42,16 +42,16 @@ char* parseIdent(struct tokenStream stream) {
     char* dest = (char*) malloc(strlen(stream.ids[idCursor]));
     strncpy(dest, stream.ids[idCursor], strlen(stream.ids[idCursor]));
     idCursor++;
-    printf("ident: %s\n", dest);
+    // printf("ident: %s\n", dest);
     return dest;
 }
 
 char* parseNumber(struct tokenStream stream) {
     expect(stream, &parseCursor, number);
-    char* dest = (char*) malloc(sizeof(int));
-    strncpy(dest, &(stream.numbers[numCursor]), sizeof(int));
+    const char* dest = (const char*) malloc(sizeof(int));
+    strncpy(dest, (const char*)&(stream.numbers[numCursor]), sizeof(int));
     numCursor++;
-    printf("num: %d\n", *(int*)dest);
+    // printf("num: %d\n", *(int*)dest);
     return dest;
 }
 
@@ -130,10 +130,10 @@ struct termAST* parseTerm(struct tokenStream stream) {
         res->next = NULL;
     }
     else {
+        res->next = (struct termTailAST*) malloc(sizeof(struct termTailAST));
         struct termTailAST* cur = res->next;
         enum Token next = get(stream, &parseCursor);
         while(next == timesToken || next == divToken) {
-            cur = (struct termTailAST*) malloc(sizeof(struct termTailAST));
             if(next == timesToken)
                 expect(stream, &parseCursor, timesToken);
             else
@@ -141,6 +141,7 @@ struct termAST* parseTerm(struct tokenStream stream) {
             cur->op = next;
             cur->factor = parseFactor(stream);
             cur = cur->next;
+            cur = (struct termTailAST*) malloc(sizeof(struct termTailAST));
             next = get(stream, &parseCursor);
         }
         cur = NULL;
@@ -159,20 +160,24 @@ struct exprAST* parseExpr(struct tokenStream stream) {
         res->next = NULL;
     }
     else {
+        res->next = (struct exprTailAST*) malloc(sizeof(struct exprTailAST));
         struct exprTailAST* cur = res->next;
         enum Token next = get(stream, &parseCursor);
         while(next == plusToken || next == minusToken) {
-            cur = (struct exprTailAST*) malloc(sizeof(struct exprTailAST));
             if(next == plusToken)
                 expect(stream, &parseCursor, plusToken);
             else
                 expect(stream, &parseCursor, minusToken);
             cur->op = next;
+            // printf("expr token: %d\n", cur->op);
             cur->term = parseTerm(stream);
-            cur = cur->next;
             next = get(stream, &parseCursor);
+            if (next == plusToken || next == minusToken) {
+                cur->next = (struct exprTailAST*) malloc(sizeof(struct exprTailAST));
+                cur = cur->next;
+            }
         }
-        cur = NULL;
+        // cur = NULL;
     }
     // printf("parsing expr correct...\n");
     return res;
@@ -233,7 +238,8 @@ struct stmtAST* parseCall(struct tokenStream stream) {
         // printf("first next token: %d\n", expr_next);
         while(expr_next == commaToken) {
             expect(stream, &parseCursor, commaToken);
-            cur->next = parseExpr(stream);
+            cur->next = (struct exprListAST*) malloc(sizeof(struct exprListAST));
+            cur->next->head = parseExpr(stream);
             cur = cur->next;
             expr_next = get(stream, &parseCursor);
             // printf("next token: %d\n", expr_next);
@@ -283,10 +289,10 @@ struct stmtSeqAST* parseStmtSequence(struct tokenStream stream) {
     if(next == semiToken) {
         while(next == semiToken) {
             expect(stream, &parseCursor, semiToken);
-            struct stmtSeqAST* new = (struct stmtSeqAST*) malloc(sizeof(struct stmtSeqAST));
-            new->stat = parseStmt(stream);
-            cur->next = new;
-            cur = new;
+            struct stmtSeqAST* _new = (struct stmtSeqAST*) malloc(sizeof(struct stmtSeqAST));
+            _new->stat = parseStmt(stream);
+            cur->next = _new;
+            cur = _new;
             next = get(stream, &parseCursor);
         }
     }
@@ -322,7 +328,7 @@ struct computationAST* parse(struct tokenStream stream) {
     expect(stream, &parseCursor, endToken);
     expect(stream, &parseCursor, periodToken);
     expect(stream, &parseCursor, eofToken);
-    printf("parse success.");
+    printf("parse success.\n");
 
     return root;
 }

@@ -9,6 +9,10 @@
 #include "frontend/scanner.h"
 #include "frontend/parser.h"
 
+#include "graphviz/graphviz.h"
+
+#include "IR/codegen.h"
+
 int main(int argc, char *argv[]) {
 
     if(argc < 2) {
@@ -50,6 +54,8 @@ int main(int argc, char *argv[]) {
 
     struct computationAST* root = parse(stream);
     
+    Module mod = codegen(root);
+    dump2txt(mod);
 
     exit(0);
 }

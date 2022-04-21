@@ -9,16 +9,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+using namespace std;
+
 class symbolTable {
-private:
-    std::vector<std::map<string, int>> table;
 public:
+    std::vector<std::map<string, int>> table;
     symbolTable();
     ~symbolTable();
     void newScope();
     void exitScope();
     void insertSymbol(string name, int value);
     int lookupSymbol(string name);
-}
+};
 
 #endif

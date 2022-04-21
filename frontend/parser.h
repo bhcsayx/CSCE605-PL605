@@ -1,8 +1,11 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <vector>
 #include <stdio.h>
 #include "scanner.h"
+
+using namespace std;
 
 struct typeDeclAST {
     char type; // 0 for var, 1 for array
@@ -50,6 +53,11 @@ struct exprAST {
     struct exprTailAST* next;
 };
 
+struct relAST {
+    struct exprAST* lhs;
+    struct exprAST* rhs;
+};
+
 struct exprTailAST {
     enum Token op;
     struct termAST* term;
@@ -93,6 +101,7 @@ struct varDeclAST* parseVarDecls(struct tokenStream stream);
 struct factorAST* parseFactor(struct tokenStream stream);
 struct termAST* parseTerm(struct tokenStream stream);
 struct exprAST* parseExpr(struct tokenStream stream);
+struct relAST* parseRelation(struct tokenStream stream);
 struct desiAST* parseDesi(struct tokenStream stream);
 struct stmtAST* parseAssign(struct tokenStream stream);
 struct stmtAST* parseCall(struct tokenStream stream);

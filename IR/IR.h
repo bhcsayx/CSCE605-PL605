@@ -20,8 +20,7 @@ enum Type {
     def,
     empty,
     insRes,
-    constVal,
-    eliminated
+    constVal
 };
 
 enum OpCode {
@@ -30,20 +29,29 @@ enum OpCode {
     MOVE,PHI,END,
     BRA,BNE,BEQ,
     BLE,BLT,BGE,
-    BGT,MOVE,READ,
-    WRITE,WRITENL,CALL
+    BGT,READ,WRITE,
+    WRITENL,CALL,RET
 };
 
 class Value {
 public:
     int index;
     int value;
+    bool eliminated = false;
     enum Type type;
     string name;
 
-    // Value();
-    // ~Value();
+    Value();
     Value(int value): value(value), type(Type::constVal) {};
+    ~Value();
+};
+
+class Global {
+public:
+    symbolTable symbolTable;
+    std::vector<Value> values;
+    Value addValue();
+    Value addValue(int v);
 };
 
 struct Instruction {
@@ -57,73 +65,38 @@ struct Instruction {
 class BasicBlock {
 public:
     int index = 0;
-    class Function* func;
     std::vector<Instruction> instructions;
     std::vector<int> predecessors;
     std::vector<int> successors;
 
-    // BasicBlock();
-    BasicBlock(Function* func, int index):func(func), index(index) {};
-    struct Value* addInstruction(struct BasicBlock* block, struct Value* op1, struct Value* op2, enum Token op);
+    BasicBlock();
+    ~BasicBlock();
+    Value addInstruction(Value op1, Value op2, enum Token op, Global& glob);
+    Value addCallInstruction(string name, vector<Value> args, Global& glob);
 };
 
 class Function {
 public:
     string name;
-    class Module* module;
     std::vector<BasicBlock> blocks;
 
     // Function();
     // ~Function();
-    Function(Module* module, string name):module(module), name(name) {};
+    Function(string name):name(name) {};
+    BasicBlock& addBasicBlock();
 };
 
 class Module {
 public:
     int funcLen = 0;
-    int varLen = 0;
-    symbolTable symbolTable;
-    std::vector<Value> values;
     std::vector<Function> funcs;
 
     // Module();
     // ~Module();
+    Function& addFunction(string name);
 };
 
-Value newConstValue(int value);
-// struct Value {
-//     int index;
-//     enum Type type;
-//     char* data;
-//     // struct Value* uses;
-// };
-
-// struct Instruction {
-//     enum OpCode opcode;
-//     int dest;
-//     int op1;
-//     int op2;
-// };
-
-// struct BasicBlock {
-//     int index;
-//     int insLen=0;
-//     int valLen=0;
-//     struct Instruction* instructions;
-//     struct Value* values;
-// };
-
-// struct Function {
-//     char* name;
-//     int blockLen = 0;
-//     struct BasicBlock* blocks;
-// };
-
-// struct Module {
-//     int funcLen = 0;
-//     int varLen = 0;
-//     struct Value* vars;
-//     struct Function* funcs;
-// };
+Value constValue(int value);
+Value emptyValue();
 
 #endif

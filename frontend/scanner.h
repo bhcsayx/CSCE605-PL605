@@ -59,7 +59,7 @@ enum Token {
 };
 
 struct tokenStream {
-    enum Token* tokens;
+    int* tokens;
     const char** ids;
     int *numbers;
     int token_len;
