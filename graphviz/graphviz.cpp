@@ -8,10 +8,10 @@
 
 using namespace std;
 
-string val2txt(Value val) {
-    switch(val.type) {
+string val2txt(Value* val) {
+    switch(val->type) {
         case Type::def: {
-            return val.name;
+            return val->name;
             break;
         }
         case Type::empty: {
@@ -20,12 +20,12 @@ string val2txt(Value val) {
         }
         case Type::insRes: {
             string res("%");
-            auto cstr = std::to_string(val.index);
+            auto cstr = std::to_string(val->index);
             res.append(cstr.c_str());
             return res;
         }
         case Type::constVal: {
-            auto cstr = std::to_string(val.value);
+            auto cstr = std::to_string(val->value);
             string res(cstr.c_str());
             return res;
         }
@@ -140,23 +140,24 @@ vector<string> dump2txt(Module mod) {
             string name("bb");
             name.append(std::to_string(blkIdx).c_str());
             blkIdx++;
+            // printf("blk length: %d\n", blk.instructions.size());
             res.push_back(name);
-            for (auto ins: blk.instructions) {
+            for (auto ins: blk->instructions) {
                 string ins_str("");
-                ins_str.append(op2txt(ins.opcode).c_str());
+                ins_str.append(op2txt(ins->opcode).c_str());
                 ins_str.append(" ");
-                if(ins.opcode == OpCode::CALL) {
-                    ins_str.append(val2txt(ins.op1).c_str());
+                if(ins->opcode == OpCode::CALL) {
+                    ins_str.append(val2txt(ins->op1).c_str());
                     ins_str.append(" ");
-                    for(auto arg: ins.callArgs) {
+                    for(auto arg: ins->callArgs) {
                         ins_str.append(val2txt(arg).c_str());
                         ins_str.append(" ");
                     }
                 }
                 else {
-                    ins_str.append(val2txt(ins.op1).c_str());
+                    ins_str.append(val2txt(ins->op1).c_str());
                     ins_str.append(" ");
-                    ins_str.append(val2txt(ins.op2).c_str());
+                    ins_str.append(val2txt(ins->op2).c_str());
                     ins_str.append(" ");
                 }
                 res.push_back(ins_str);

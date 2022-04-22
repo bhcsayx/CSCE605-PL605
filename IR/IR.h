@@ -41,7 +41,7 @@ public:
     enum Type type;
     string name;
 
-    Value();
+    Value() = default;
     Value(int value): value(value), type(Type::constVal) {};
     ~Value();
 };
@@ -49,41 +49,40 @@ public:
 class Global {
 public:
     symbolTable symbolTable;
-    std::vector<Value> values;
-    Value addValue();
-    Value addValue(int v);
+    std::vector<Value*> values;
+    Value* addValue(Value* res);
 };
 
 struct Instruction {
     enum OpCode opcode;
-    Value dest;
-    Value op1;
-    Value op2;
-    std::vector<Value> callArgs;
+    Value* dest;
+    Value* op1;
+    Value* op2;
+    std::vector<Value*> callArgs;
 };
 
 class BasicBlock {
 public:
     int index = 0;
-    std::vector<Instruction> instructions;
+    std::vector<Instruction*> instructions;
     std::vector<int> predecessors;
     std::vector<int> successors;
 
     BasicBlock();
     ~BasicBlock();
-    Value addInstruction(Value op1, Value op2, enum Token op, Global& glob);
-    Value addCallInstruction(string name, vector<Value> args, Global& glob);
+    Value* addInstruction(Value* op1, Value* op2, enum Token op, Global& glob, Instruction* ins);
+    Value* addCallInstruction(string name, vector<Value*> args, Value* func, Global& glob, Instruction* ins);
 };
 
 class Function {
 public:
     string name;
-    std::vector<BasicBlock> blocks;
+    std::vector<BasicBlock*> blocks;
 
     // Function();
     // ~Function();
     Function(string name):name(name) {};
-    BasicBlock& addBasicBlock();
+    void addBasicBlock(BasicBlock* block);
 };
 
 class Module {
@@ -96,7 +95,7 @@ public:
     Function& addFunction(string name);
 };
 
-Value constValue(int value);
-Value emptyValue();
+Value* constValue(int value);
+Value* emptyValue();
 
 #endif

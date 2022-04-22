@@ -12,7 +12,7 @@ using namespace std;
 int valIndex = 0;
 Global glob;
 
-Value codegen(struct desiAST* desi, BasicBlock& block, bool is_left=false) {
+Value* codegen(struct desiAST* desi, BasicBlock* block, bool is_left=false) {
     if(desi->type == 0) {
         string name(desi->id);
         // int index = ((Module*)(((Function*)(block->func))->module))->symbolTable.lookupSymbol(name);
@@ -21,10 +21,10 @@ Value codegen(struct desiAST* desi, BasicBlock& block, bool is_left=false) {
         // }
         // printf("skipped\n");
         if(is_left) {
-            Value res;
-            res.value = -1;
-            res.type = Type::def;
-            res.name = name;
+            Value* res = new Value();
+            res->value = -1;
+            res->type = Type::def;
+            res->name = name;
             return res;
         }
         int index = glob.symbolTable.lookupSymbol(name);
@@ -34,16 +34,16 @@ Value codegen(struct desiAST* desi, BasicBlock& block, bool is_left=false) {
             exit(-1);
         }
         if (index == -1) {
-            Value res;
-            res.type = Type::def;
-            res.name = name;
+            Value* res = new Value();
+            res->type = Type::def;
+            res->name = name;
             return res;
         }
         return glob.values[index];
     }
 }
 
-Value codegen(struct factorAST* factor, BasicBlock& block) {
+Value* codegen(struct factorAST* factor, BasicBlock* block) {
     switch(factor->type) {
         case 0: {
             return codegen((struct desiAST*)(factor->data), block);
@@ -68,94 +68,110 @@ Value codegen(struct factorAST* factor, BasicBlock& block) {
     }
 }
 
-Value codegen(struct termAST* term, BasicBlock& block) {
-    Value cur = codegen(term->factor, block);
+Value* codegen(struct termAST* term, BasicBlock* block) {
+    Value* cur = codegen(term->factor, block);
     termTailAST* curAST = term->next;
     while(curAST) {
-        Value extra = codegen(curAST->factor, block);
+        Value* extra = codegen(curAST->factor, block);
+        Instruction* ins = new Instruction();
         if(curAST->op == Token::timesToken)
-            cur = block.addInstruction(cur, extra, timesToken, glob);
+            cur = block->addInstruction(cur, extra, timesToken, glob, ins);
         else if(curAST->op == Token::divToken)
-            cur = block.addInstruction(cur, extra, divToken, glob);
+            cur = block->addInstruction(cur, extra, divToken, glob, ins);
         curAST = curAST->next;
     }
     return cur;
 }
 
-Value codegen(struct exprAST* expr, BasicBlock& block) {
-    Value cur = codegen(expr->term, block);
+Value* codegen(struct exprAST* expr, BasicBlock* block) {
+    Value* cur = codegen(expr->term, block);
     exprTailAST* curAST = expr->next;
     // printf("%d\n", curAST);
     while(curAST) {
         // printf("op: %d\n", curAST->op);
-        Value extra = codegen(curAST->term, block);
+        Value* extra = codegen(curAST->term, block);
+        Instruction* ins = new Instruction();
         if(curAST->op == Token::plusToken)
-            cur = block.addInstruction(cur, extra, plusToken, glob);
+            cur = block->addInstruction(cur, extra, plusToken, glob, ins);
         else if(curAST->op == Token::minusToken)
-            cur = block.addInstruction(cur, extra, minusToken, glob);
+            cur = block->addInstruction(cur, extra, minusToken, glob, ins);
         curAST = curAST->next;
     }
     return cur;
 }
 
-Value codegen(struct assignAST* assign, BasicBlock& block) {
-    Value lhs = codegen(assign->lhs, block, true);
+Value* codegen(struct assignAST* assign, BasicBlock* block) {
+    Value* lhs = codegen(assign->lhs, block, true);
     switch(assign->op) {
         case increaseToken: {
-            Value one = constValue(1);
-            Value tmp = block.addInstruction(lhs, one, Token::plusToken, glob);
-            Value res = block.addInstruction(tmp, lhs, Token::assignToken, glob);
-            glob.symbolTable.insertSymbol(lhs.name, tmp.index);
+            Value* one = constValue(1);
+            Instruction* tmp_ins = new Instruction();
+            Instruction* ins = new Instruction();
+            Value* tmp = block->addInstruction(lhs, one, Token::plusToken, glob, tmp_ins);
+            Value* res = block->addInstruction(tmp, lhs, Token::assignToken, glob, ins);
+            glob.symbolTable.insertSymbol(lhs->name, tmp->index);
             return res;
             break;
         }
         case decreaseToken: {
-            Value one = constValue(1);
-            Value tmp = block.addInstruction(lhs, one, Token::minusToken, glob);
-            Value res = block.addInstruction(tmp, lhs, Token::assignToken, glob);
-            glob.symbolTable.insertSymbol(lhs.name, tmp.index);
+            Value* one = constValue(1);
+            Instruction* tmp_ins = new Instruction();
+            Instruction* ins = new Instruction();
+            Value* tmp = block->addInstruction(lhs, one, Token::minusToken, glob, tmp_ins);
+            Value* res = block->addInstruction(tmp, lhs, Token::assignToken, glob, ins);
+            glob.symbolTable.insertSymbol(lhs->name, tmp->index);
             return res;
             break;
         }
         case selfplusToken: {
-            Value rhs = codegen(assign->rhs, block);
-            Value tmp = block.addInstruction(lhs, rhs, Token::plusToken, glob);
-            Value res = block.addInstruction(tmp, lhs, Token::assignToken, glob);
-            glob.symbolTable.insertSymbol(lhs.name, tmp.index);
+            Value* rhs = codegen(assign->rhs, block);
+            Instruction* tmp_ins = new Instruction();
+            Instruction* ins = new Instruction();
+            Value* tmp = block->addInstruction(lhs, rhs, Token::plusToken, glob, tmp_ins);
+            Value* res = block->addInstruction(tmp, lhs, Token::assignToken, glob, ins);
+            glob.symbolTable.insertSymbol(lhs->name, tmp->index);
             return res;
             break;
         }
         case selfminusToken: {
-            Value rhs = codegen(assign->rhs, block);
-            Value tmp = block.addInstruction(lhs, rhs, Token::minusToken, glob);
-            Value res = block.addInstruction(tmp, lhs, Token::assignToken, glob);
-            glob.symbolTable.insertSymbol(lhs.name, tmp.index);
+            Value* rhs = codegen(assign->rhs, block);
+            Instruction* tmp_ins = new Instruction();
+            Instruction* ins = new Instruction();
+            Value* tmp = block->addInstruction(lhs, rhs, Token::minusToken, glob, tmp_ins);
+            Value* res = block->addInstruction(tmp, lhs, Token::assignToken, glob, ins);
+            glob.symbolTable.insertSymbol(lhs->name, tmp->index);
             return res;
             break;
         }
         case selftimesToken: {
-            Value rhs = codegen(assign->rhs, block);
-            Value tmp = block.addInstruction(lhs, rhs, Token::timesToken, glob);
-            Value res = block.addInstruction(tmp, lhs, Token::assignToken, glob);
-            glob.symbolTable.insertSymbol(lhs.name, rhs.index);
+            Value* rhs = codegen(assign->rhs, block);
+            Instruction* tmp_ins = new Instruction();
+            Instruction* ins = new Instruction();
+            Value* tmp = block->addInstruction(lhs, rhs, Token::timesToken, glob, tmp_ins);
+            Value* res = block->addInstruction(tmp, lhs, Token::assignToken, glob, ins);
+            glob.symbolTable.insertSymbol(lhs->name, rhs->index);
             return res;
             break;
         }
         case selfdivToken: {
-            Value rhs = codegen(assign->rhs, block);
-            Value tmp = block.addInstruction(lhs, rhs, Token::divToken, glob);
-            Value res = block.addInstruction(tmp, lhs, Token::assignToken, glob);
-            glob.symbolTable.insertSymbol(lhs.name, rhs.index);
+            Value* rhs = codegen(assign->rhs, block);
+            Instruction* tmp_ins = new Instruction();
+            Instruction* ins = new Instruction();
+            Value* tmp = block->addInstruction(lhs, rhs, Token::divToken, glob, tmp_ins);
+            Value* res = block->addInstruction(tmp, lhs, Token::assignToken, glob, ins);
+            glob.symbolTable.insertSymbol(lhs->name, rhs->index);
             return res;
             break;
         }
         case assignToken: {
-            Value rhs = codegen(assign->rhs, block);
-            Value res = block.addInstruction(rhs, lhs, Token::assignToken, glob);
+            Value* rhs = codegen(assign->rhs, block);
+            Instruction* ins = new Instruction();
+            Value* res = block->addInstruction(rhs, lhs, Token::assignToken, glob, ins);
             // printf("%s %d\n", lhs.name.c_str(), rhs.index);
-            glob.symbolTable.insertSymbol(lhs.name, rhs.index);
-            int index = glob.symbolTable.lookupSymbol(lhs.name);
-            // printf("after assign index of var %s is %d\n", lhs.name.c_str(), index);
+            glob.symbolTable.insertSymbol(lhs->name, rhs->index);
+            int index = glob.symbolTable.lookupSymbol(lhs->name);
+            printf("after assign index of var %s is %d\n", lhs->name.c_str(), index);
+            printf("blk len after assign: %d\n", block->instructions.size());
             // for(auto k: glob.symbolTable.table.back()) {
             //     printf("%s, %d\n", k.first.c_str(), k.second);
             // }
@@ -169,45 +185,94 @@ Value codegen(struct assignAST* assign, BasicBlock& block) {
     }
 }
 
-std::vector<Value> codegen(struct exprListAST* list, BasicBlock& block) {
-    std::vector<Value> res;
+std::vector<Value*> codegen(struct exprListAST* list, BasicBlock* block) {
+    std::vector<Value*> res;
     struct exprListAST* cur = list;
     while(cur) {
-        Value v = codegen(cur->head, block);
+        Value* v = codegen(cur->head, block);
         res.push_back(v);
         cur = cur->next;
     }
     return res;
 }
 
-Value codegen(struct funcCallAST* call, BasicBlock& block) {
+Value* codegen(struct relAST* rel, BasicBlock* block) {
+    Value* lhs = codegen(rel->lhs, block);
+    Value* rhs = codegen(rel->rhs, block);
+    Instruction* cmp = new Instruction();
+    Value* tmp = block->addInstruction(lhs, rhs, cmpToken, glob, cmp);
+    Value* empty = emptyValue();
+    switch(rel->op) {
+        case eqlToken: {
+            Instruction* res = new Instruction();
+            return block->addInstruction(tmp, empty, eqlToken, glob, res);
+        }
+        case neqToken: {
+            Instruction* res = new Instruction();
+            return block->addInstruction(tmp, empty, neqToken, glob, res);
+        }
+        case lssToken: {
+            Instruction* res = new Instruction();
+            return block->addInstruction(tmp, empty, lssToken, glob, res);
+        }
+        case gtrToken: {
+            Instruction* res = new Instruction();
+            return block->addInstruction(tmp, empty, gtrToken, glob, res);
+        }
+        case leqToken: {
+            Instruction* res = new Instruction();
+            return block->addInstruction(tmp, empty, leqToken, glob, res);
+        }
+        case geqToken: {
+            Instruction* res = new Instruction();
+            return block->addInstruction(tmp, empty, geqToken, glob, res);
+        }
+        default: {
+            printf("error in relation code generation: %d\n", rel->op);
+            exit(-1);
+        }
+    }
+}
+
+Value* codegen(struct funcCallAST* call, BasicBlock* block) {
     // printf("handling call\n");
     string name(call->funcName);
-    Value empty = emptyValue();
+    Instruction* ins = new Instruction();
+    Value* empty = emptyValue();
     if(name == "InputNum") {
-        Value res = block.addInstruction(empty, empty, readToken, glob);
+        Value* res = block->addInstruction(empty, empty, readToken, glob, ins);
         return res;
     }
     else if(name == "OutputNum") {
-        Value num = codegen(call->args, block)[0];
-        Value res = block.addInstruction(num, empty, writeToken, glob);
+        Value* num = codegen(call->args, block)[0];
+        Value* res = block->addInstruction(num, empty, writeToken, glob, ins);
         return res;
     }
     else if(name == "OutputNL") {
-        Value res = block.addInstruction(empty, empty, writeNLToken, glob);
+        Value* res = block->addInstruction(empty, empty, writeNLToken, glob, ins);
         return res;
     }
     else {
         if(call->args == NULL) {
-            std::vector<Value> tmp;
-            Value res = block.addCallInstruction(name, tmp, glob);
+            std::vector<Value*> tmp;
+            Value* func = new Value();
+            Value* res = block->addCallInstruction(name, tmp, func, glob, ins);
             return res;
         }
         else {
-            std::vector<Value> args = codegen(call->args, block);
-            Value res = block.addCallInstruction(name, args, glob);
+            std::vector<Value*> args = codegen(call->args, block);
+            Value* func = new Value();
+            Value* res = block->addCallInstruction(name, args, func, glob, ins);
             return res;
         }
+    }
+}
+
+void codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
+    codegen(branch->cond, block);
+    codegen(branch->br1, func, false);
+    if(branch->br2) {
+        codegen(branch->br2, func, false);
     }
 }
 
@@ -226,18 +291,27 @@ void codegen(struct varDeclAST* vars, Module mod) {
 
 void codegen(struct stmtSeqAST* stmts, Function& func, bool is_func=false) {
     struct stmtSeqAST* cur = stmts;
-    BasicBlock& curBlock = func.addBasicBlock();
+    BasicBlock* curBlock = new BasicBlock();
+    func.addBasicBlock(curBlock);
     // printf("block added\n");
     while(cur) {
         switch(cur->stat->type) {
             case 0: { // assign'
-                // printf("handling assign...%x\n", cur->stat->data);
+                printf("handling assign...\n");
                 codegen((struct assignAST*)(cur->stat->data), curBlock);
                 break;
             }
             case 1: { // funccall
-                // printf("handling funccall...\n");
+                printf("handling funccall...\n");
                 codegen((struct funcCallAST*)(cur->stat->data), curBlock);
+                break;
+            }
+            case 2: { // branch
+                printf("handling brh...\n");
+                codegen((struct brhAST*)(cur->stat->data), func, curBlock);
+                BasicBlock* joinBlock = new BasicBlock();
+                func.addBasicBlock(joinBlock);
+                curBlock = joinBlock;
                 break;
             }
             default: {
@@ -245,10 +319,15 @@ void codegen(struct stmtSeqAST* stmts, Function& func, bool is_func=false) {
             }
         }
         cur = cur->next;
+        if(cur == NULL) {
+            printf("finished\n");
+        }
     }
+    printf("block len: %d\n", func.blocks.size());
     if(is_func) {
-        Value empty = emptyValue();
-        curBlock.addInstruction(empty, empty, returnToken, glob);
+        Value* empty = emptyValue();
+        Instruction* ins = new Instruction();
+        curBlock->addInstruction(empty, empty, returnToken, glob, ins);
     }
 }
 

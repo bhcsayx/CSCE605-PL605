@@ -10,5 +10,4 @@ var a, b, c, d, e;
 		let d := b + 2
 	fi;
 	let e := a + b
-}
-.
+}.
