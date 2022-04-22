@@ -162,6 +162,12 @@ vector<string> dump2txt(Module mod) {
                 }
                 res.push_back(ins_str);
             }
+            for (auto pre: blk->predecessors) {
+                printf("pre of %d: -> %d\n", blk->index, pre);
+            }
+            for (auto suc: blk->successors) {
+                printf("suc of %d: -> %d\n", blk->index, suc);
+            }
         }
     }
     for(auto s:res) {

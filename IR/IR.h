@@ -36,7 +36,7 @@ enum OpCode {
 class Value {
 public:
     int index;
-    int value;
+    int value=0;
     bool eliminated = false;
     enum Type type;
     string name;

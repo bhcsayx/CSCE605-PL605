@@ -102,6 +102,10 @@ Value* BasicBlock::addInstruction(Value* op1, Value* op2, Token op, Global& glob
             place->opcode = OpCode::BGE;
             break;
         }
+        case jmpToken: {
+            place->opcode = OpCode::BRA;
+            break;
+        }
         default:
             break;
     };
@@ -129,6 +133,7 @@ Value* BasicBlock::addCallInstruction(string name, vector<Value*> args, Value* f
 }
 
 void Function::addBasicBlock(BasicBlock* block) {
+    block->index = blocks.size();
     blocks.push_back(block);
 }
 

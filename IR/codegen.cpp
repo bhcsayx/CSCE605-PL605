@@ -170,8 +170,8 @@ Value* codegen(struct assignAST* assign, BasicBlock* block) {
             // printf("%s %d\n", lhs.name.c_str(), rhs.index);
             glob.symbolTable.insertSymbol(lhs->name, rhs->index);
             int index = glob.symbolTable.lookupSymbol(lhs->name);
-            printf("after assign index of var %s is %d\n", lhs->name.c_str(), index);
-            printf("blk len after assign: %d\n", block->instructions.size());
+            // printf("after assign index of var %s is %d\n", lhs->name.c_str(), index);
+            // printf("blk len after assign: %d\n", block->instructions.size());
             // for(auto k: glob.symbolTable.table.back()) {
             //     printf("%s, %d\n", k.first.c_str(), k.second);
             // }
@@ -196,12 +196,13 @@ std::vector<Value*> codegen(struct exprListAST* list, BasicBlock* block) {
     return res;
 }
 
-Value* codegen(struct relAST* rel, BasicBlock* block) {
+Value* codegen(struct relAST* rel, BasicBlock* block, int jmpIndex) {
+    printf("generating rel at block: %d\n", block->index);
     Value* lhs = codegen(rel->lhs, block);
     Value* rhs = codegen(rel->rhs, block);
     Instruction* cmp = new Instruction();
     Value* tmp = block->addInstruction(lhs, rhs, cmpToken, glob, cmp);
-    Value* empty = emptyValue();
+    Value* empty = constValue(jmpIndex);
     switch(rel->op) {
         case eqlToken: {
             Instruction* res = new Instruction();
@@ -269,10 +270,46 @@ Value* codegen(struct funcCallAST* call, BasicBlock* block) {
 }
 
 void codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
-    codegen(branch->cond, block);
+    codegen(branch->cond, block, func.blocks.size());
     codegen(branch->br1, func, false);
+    BasicBlock* left = func.blocks[func.blocks.size()-1];
+    block->successors.push_back(left->index);
+    left->predecessors.push_back(block->index);
     if(branch->br2) {
         codegen(branch->br2, func, false);
+        BasicBlock* right = func.blocks[func.blocks.size()-1];
+        block->successors.push_back(right->index);
+        right->predecessors.push_back(block->index);
+    }
+}
+
+void codegen(struct loopAST* loop, Function& func, BasicBlock* block) {
+    if(loop->type == 0) {
+        BasicBlock* condBlock = new BasicBlock();
+        func.addBasicBlock(condBlock);
+        block->successors.push_back(condBlock->index);
+        condBlock->predecessors.push_back(block->index);
+        codegen(loop->cond, condBlock, func.blocks.size());
+        codegen(loop->body, func);
+        BasicBlock* bodyBlock = func.blocks[func.blocks.size()-1];
+        Value* v1 = constValue(condBlock->index);
+        Value* v2 = emptyValue();
+        Instruction* ins = new Instruction();
+        bodyBlock->addInstruction(v1, v2, jmpToken, glob, ins);
+        bodyBlock->successors.push_back(condBlock->index);
+        condBlock->successors.push_back(bodyBlock->index);
+        condBlock->predecessors.push_back(bodyBlock->index);
+    }
+    else {
+        codegen(loop->body, func);
+        BasicBlock* loopBlock = func.blocks[func.blocks.size()-1];
+        codegen(loop->cond, loopBlock, func.blocks.size());
+        // BasicBlock* condBlock = func.blocks[func.blocks.size()-1];
+        block->successors.push_back(loopBlock->index);
+        loopBlock->predecessors.push_back(block->index);
+        loopBlock->successors.push_back(loopBlock->index);
+        // condBlock->predecessors.push_back(loopBlock->index);
+        // condBlock->successors.push_back(loopBlock->index);
     }
 }
 
@@ -297,20 +334,53 @@ void codegen(struct stmtSeqAST* stmts, Function& func, bool is_func=false) {
     while(cur) {
         switch(cur->stat->type) {
             case 0: { // assign'
-                printf("handling assign...\n");
+                // printf("handling assign...\n");
                 codegen((struct assignAST*)(cur->stat->data), curBlock);
                 break;
             }
             case 1: { // funccall
-                printf("handling funccall...\n");
+                // printf("handling funccall...\n");
                 codegen((struct funcCallAST*)(cur->stat->data), curBlock);
                 break;
             }
             case 2: { // branch
-                printf("handling brh...\n");
+                // printf("handling brh...\n");
                 codegen((struct brhAST*)(cur->stat->data), func, curBlock);
                 BasicBlock* joinBlock = new BasicBlock();
                 func.addBasicBlock(joinBlock);
+                if(((struct brhAST*)(cur->stat->data))->br2) {
+                    BasicBlock* left = func.blocks[func.blocks.size()-3];
+                    BasicBlock* right = func.blocks[func.blocks.size()-2];
+                    left->successors.push_back(joinBlock->index);
+                    right->successors.push_back(joinBlock->index);
+                    joinBlock->predecessors.push_back(left->index);
+                    joinBlock->predecessors.push_back(right->index);
+                }
+                else {
+                    BasicBlock* left = func.blocks[func.blocks.size()-3];
+                    left->successors.push_back(joinBlock->index);
+                    joinBlock->predecessors.push_back(left->index);
+                }
+                curBlock = joinBlock;
+                break;
+            }
+            case 3: { // while
+                codegen((struct loopAST*)(cur->stat->data), func, curBlock);
+                BasicBlock* joinBlock = new BasicBlock();
+                func.addBasicBlock(joinBlock);
+                BasicBlock* condBlock = func.blocks[func.blocks.size()-3];
+                joinBlock->predecessors.push_back(condBlock->index);
+                condBlock->successors.push_back(joinBlock->index);
+                curBlock = joinBlock;
+                break;
+            }
+            case 4: { // repeat
+                codegen((struct loopAST*)(cur->stat->data), func, curBlock);
+                BasicBlock* joinBlock = new BasicBlock();
+                func.addBasicBlock(joinBlock);
+                BasicBlock* bodyBlock = func.blocks[func.blocks.size()-1];
+                bodyBlock->successors.push_back(joinBlock->index);
+                joinBlock->predecessors.push_back(bodyBlock->index);
                 curBlock = joinBlock;
                 break;
             }

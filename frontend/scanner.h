@@ -55,6 +55,7 @@ enum Token {
     writeToken,
     writeNLToken,
     cmpToken,
+    jmpToken,
     blankToken, // token for placeholder in some AST fields
     eofToken=255
 };

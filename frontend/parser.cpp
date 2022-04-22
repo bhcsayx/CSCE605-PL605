@@ -335,17 +335,17 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
 
     switch(start) {
         case letToken: {
-            printf("handling assign\n");
+            // printf("handling assign\n");
             res = parseAssign(stream);
             break;
         }
         case callToken: {
-            printf("handling call\n");
+            // printf("handling call\n");
             res = parseCall(stream);
             break;
         }
         case ifToken: {
-            printf("handling branch\n");
+            // printf("handling branch\n");
             res = parseBranch(stream);
             // printf("next after if: %d\n", get(stream, &parseCursor));
             break;
