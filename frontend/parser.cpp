@@ -183,6 +183,79 @@ struct exprAST* parseExpr(struct tokenStream stream) {
     return res;
 }
 
+struct relAST* parseRelation(struct tokenStream stream) {
+    struct relAST* res = (struct relAST*) malloc(sizeof(struct relAST));
+    res->lhs = parseExpr(stream);
+    enum Token op = get(stream, &parseCursor);
+    if((op != eqlToken) && (op != neqToken) && (op != lssToken) && (op != geqToken) && (op != leqToken) && (op != gtrToken)) {
+        printf("parse error: expected one of the following tokens: == != < > <= >=\n");
+        exit(-1);
+    }
+    res->op = get(stream, &parseCursor);
+    parseCursor++;
+    res->rhs = parseExpr(stream);
+    return res;
+}
+
+struct stmtAST* parseBranch(struct tokenStream stream) {
+    expect(stream, &parseCursor, ifToken);
+    struct brhAST* data = (struct brhAST*) malloc(sizeof(struct brhAST));
+    data->cond = parseRelation(stream);
+    expect(stream, &parseCursor, thenToken);
+    data->br1 = parseStmtSequence(stream);
+    enum Token next = get(stream, &parseCursor);
+    if(next == elseToken)
+        data->br2 = parseStmtSequence(stream);
+    else if(next == fiToken)
+        data->br2 = NULL;
+    else {
+        printf("error processing ifStatement.\n");
+        exit(-1);
+    }
+    expect(stream, &parseCursor, fiToken);
+    struct stmtAST* res = (struct stmtAST*) malloc(sizeof(struct stmtAST));
+    res->type = 2;
+    res->data = (char*)data;
+    return res;
+}
+
+struct stmtAST* parseWhile(struct tokenStream stream) {
+    expect(stream, &parseCursor, whileToken);
+    struct loopAST* data = (struct loopAST*) malloc(sizeof(struct loopAST));
+    data->type = 0;
+    data->cond = parseRelation(stream);
+    expect(stream, &parseCursor, doToken);
+    data->body = parseStmtSequence(stream);
+    expect(stream, &parseCursor, odToken);
+    struct stmtAST* res = (struct stmtAST*) malloc(sizeof(struct stmtAST));
+    res->type = 3;
+    res->data = (char*)data;
+    return res;
+}
+
+struct stmtAST* parseRepeat(struct tokenStream stream) {
+    expect(stream, &parseCursor, repeatToken);
+    struct loopAST* data = (struct loopAST*) malloc(sizeof(struct loopAST));
+    data->type = 1;
+    data->body = parseStmtSequence(stream);
+    expect(stream, &parseCursor, untilToken);
+    data->cond = parseRelation(stream);
+    struct stmtAST* res = (struct stmtAST*) malloc(sizeof(struct stmtAST));
+    res->type = 4;
+    res->data = (char*)data;
+    return res;
+}
+
+struct stmtAST* parseReturn(struct tokenStream stream) {
+    expect(stream, &parseCursor, returnToken);
+    struct retAST* data = (struct retAST*) malloc(sizeof(struct retAST));
+    data->expr = parseExpr(stream);
+    struct stmtAST* res = (struct stmtAST*) malloc(sizeof(struct stmtAST));
+    res->type = 5;
+    res->data = (char*)data;
+    return res;
+}
+
 struct desiAST* parseDesi(struct tokenStream stream) {
     struct desiAST* res = (struct desiAST*) malloc(sizeof(struct desiAST));
     res->id = parseIdent(stream);
@@ -196,6 +269,7 @@ struct desiAST* parseDesi(struct tokenStream stream) {
     }
     return res;
 }
+
 struct stmtAST* parseAssign(struct tokenStream stream) {
     expect(stream, &parseCursor, letToken);
     struct assignAST* data = (struct assignAST*) malloc(sizeof(struct assignAST));
@@ -268,6 +342,22 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
         case callToken: {
             // printf("handling call\n");
             res = parseCall(stream);
+            break;
+        }
+        case ifToken: {
+            res = parseBranch(stream);
+            break;
+        }
+        case whileToken: {
+            res = parseWhile(stream);
+            break;
+        }
+        case repeatToken: {
+            res = parseRepeat(stream);
+            break;
+        }
+        case returnToken: {
+            res = parseReturn(stream);
             break;
         }
         default: {

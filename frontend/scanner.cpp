@@ -221,7 +221,7 @@ struct tokenStream scan(char *input){
         }
         
         else {
-            printf("%d, %d\n", i, input[i]);
+            // printf("%d, %d\n", i, input[i]);
             if(*(input+i) == '/' && *(input+i+1) == '/' || *(input+i) == ' ' || *(input+i) == '\n' || *(input+i) == '\t' || *(input+i) == '\r')
                 continue;
             printf("scanner error at line: %d, exiting...\n", line_number);

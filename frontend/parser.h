@@ -53,11 +53,6 @@ struct exprAST {
     struct exprTailAST* next;
 };
 
-struct relAST {
-    struct exprAST* lhs;
-    struct exprAST* rhs;
-};
-
 struct exprTailAST {
     enum Token op;
     struct termAST* term;
@@ -67,6 +62,28 @@ struct exprTailAST {
 struct exprListAST {
     struct exprAST* head;
     struct exprListAST* next;
+};
+
+struct relAST {
+    struct exprAST* lhs;
+    enum Token op;
+    struct exprAST* rhs;
+};
+
+struct brhAST {
+    struct relAST* cond;
+    struct stmtSeqAST* br1;
+    struct stmtSeqAST* br2;
+};
+
+struct loopAST {
+    char type; // 0 for while, 1 for repeat
+    struct relAST* cond;
+    struct stmtSeqAST* body;
+};
+
+struct retAST {
+    struct exprAST* expr;
 };
 
 struct assignAST {
@@ -102,6 +119,10 @@ struct factorAST* parseFactor(struct tokenStream stream);
 struct termAST* parseTerm(struct tokenStream stream);
 struct exprAST* parseExpr(struct tokenStream stream);
 struct relAST* parseRelation(struct tokenStream stream);
+struct stmtAST* parseBranch(struct tokenStream stream);
+struct stmtAST* parseWhile(struct tokenStream stream);
+struct stmtAST* parseRepeat(struct tokenStream stream);
+struct stmtAST* parseReturn(struct tokenStream stream);
 struct desiAST* parseDesi(struct tokenStream stream);
 struct stmtAST* parseAssign(struct tokenStream stream);
 struct stmtAST* parseCall(struct tokenStream stream);
