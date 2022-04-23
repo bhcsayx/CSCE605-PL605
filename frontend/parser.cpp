@@ -364,7 +364,7 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
             break;
         }
         default: {
-            printf("stmt currently not supported...\n");
+            printf("stmt currently not supported...%d\n", start);
             exit(-1);
             break;
         }
@@ -379,13 +379,27 @@ struct stmtSeqAST* parseStmtSequence(struct tokenStream stream) {
     enum Token next = get(stream, &parseCursor);
 
     struct stmtSeqAST* cur = stmts;
+    // if(next == semiToken) {
+    //     while(next == semiToken) {
+    //         expect(stream, &parseCursor, semiToken);
+    //         struct stmtSeqAST* _new = (struct stmtSeqAST*) malloc(sizeof(struct stmtSeqAST));
+    //         _new->stat = parseStmt(stream);
+    //         cur->next = _new;
+    //         cur = _new;
+    //         next = get(stream, &parseCursor);
+    //         printf("next token: %d\n", next);
+    //     }
+    // }
     if(next == semiToken) {
-        while(next == semiToken) {
-            expect(stream, &parseCursor, semiToken);
+        expect(stream, &parseCursor, semiToken);
+        next = get(stream, &parseCursor);
+        while(next == letToken || next == callToken || next == ifToken || next == whileToken || next == repeatToken || next == returnToken) {
             struct stmtSeqAST* _new = (struct stmtSeqAST*) malloc(sizeof(struct stmtSeqAST));
             _new->stat = parseStmt(stream);
             cur->next = _new;
             cur = _new;
+            if(get(stream, &parseCursor) == semiToken)
+                expect(stream, &parseCursor, semiToken);
             next = get(stream, &parseCursor);
             printf("next token: %d\n", next);
         }
