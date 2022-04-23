@@ -84,6 +84,7 @@ Value* codegen(struct termAST* term, BasicBlock* block) {
 }
 
 Value* codegen(struct exprAST* expr, BasicBlock* block) {
+    // printf("term: %d\n", expr->term);
     Value* cur = codegen(expr->term, block);
     exprTailAST* curAST = expr->next;
     // printf("%d\n", curAST);
@@ -197,11 +198,14 @@ std::vector<Value*> codegen(struct exprListAST* list, BasicBlock* block) {
 }
 
 Value* codegen(struct relAST* rel, BasicBlock* block, int jmpIndex) {
-    printf("generating rel at block: %d\n", block->index);
+    // printf("generating rel at block: %d\n", block->index);
     Value* lhs = codegen(rel->lhs, block);
+    // printf("rel lhs finished\n");
     Value* rhs = codegen(rel->rhs, block);
+    // printf("rel rhs finished\n");
     Instruction* cmp = new Instruction();
     Value* tmp = block->addInstruction(lhs, rhs, cmpToken, glob, cmp);
+    // printf("cmp finished%d\n", rel->op);
     Value* empty = constValue(jmpIndex);
     switch(rel->op) {
         case eqlToken: {
@@ -236,7 +240,7 @@ Value* codegen(struct relAST* rel, BasicBlock* block, int jmpIndex) {
 }
 
 Value* codegen(struct funcCallAST* call, BasicBlock* block) {
-    // printf("handling call\n");
+    printf("handling call %s\n", call->funcName);
     string name(call->funcName);
     Instruction* ins = new Instruction();
     Value* empty = emptyValue();
@@ -271,7 +275,9 @@ Value* codegen(struct funcCallAST* call, BasicBlock* block) {
 
 void codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
     codegen(branch->cond, block, func.blocks.size());
+    // printf("rel finished\n");
     codegen(branch->br1, func, false);
+    // printf("br1 finished\n");
     BasicBlock* left = func.blocks[func.blocks.size()-1];
     block->successors.push_back(left->index);
     left->predecessors.push_back(block->index);

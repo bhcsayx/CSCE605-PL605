@@ -338,12 +338,13 @@ struct stmtAST* parseCall(struct tokenStream stream) {
     data->funcName = parseIdent(stream);
     expect(stream, &parseCursor, openparenToken);
     enum Token next = get(stream, &parseCursor);
-    // printf("call ident success\n");
+    printf("call ident success\n");
     if(next != closeparenToken) {
         // printf("non empty args...\n");
         data->args = (struct exprListAST*) malloc(sizeof(struct exprListAST));
         struct exprListAST* cur = data->args;
         cur->head = parseExpr(stream);
+        printf("head: %d\n", cur->head->term);
         // printf("expr success\n");
         enum Token expr_next = get(stream, &parseCursor);
         // printf("first next token: %d\n", expr_next);
@@ -355,6 +356,7 @@ struct stmtAST* parseCall(struct tokenStream stream) {
             expr_next = get(stream, &parseCursor);
             // printf("next token: %d\n", expr_next);
         }
+        cur->next = NULL;
     }
     else
         data->args = NULL;
@@ -379,6 +381,10 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
         case callToken: {
             // printf("handling call\n");
             res = parseCall(stream);
+            printf("args: %d\n", ((struct funcCallAST*)(res->data))->args);
+            if(((struct funcCallAST*)(res->data))->args != NULL) {
+                printf("1st arg term%d\n", ((struct funcCallAST*)(res->data))->args->head->term);
+            }
             break;
         }
         case ifToken: {
