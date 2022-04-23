@@ -177,7 +177,7 @@ struct tokenStream scan(char *input){
                 if(i >= len)
                     break;
             }
-            if(i >= len)
+            if(i >= len) 
                 break;
             line_number++;
         }

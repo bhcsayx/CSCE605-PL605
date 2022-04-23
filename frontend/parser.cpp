@@ -113,7 +113,7 @@ struct factorAST* parseFactor(struct tokenStream stream) {
         }
 
         default: {
-            printf("error parsing designator\n");
+            printf("error parsing designator: %d\n", next);
             exit(-1);
             break;
         }
@@ -205,8 +205,10 @@ struct stmtAST* parseBranch(struct tokenStream stream) {
     expect(stream, &parseCursor, thenToken);
     data->br1 = parseStmtSequence(stream);
     enum Token next = get(stream, &parseCursor);
-    if(next == elseToken)
+    if(next == elseToken) {
+        expect(stream, &parseCursor, elseToken);
         data->br2 = parseStmtSequence(stream);
+    }
     else if(next == fiToken)
         data->br2 = NULL;
     else {
@@ -250,7 +252,10 @@ struct stmtAST* parseRepeat(struct tokenStream stream) {
 struct stmtAST* parseReturn(struct tokenStream stream) {
     expect(stream, &parseCursor, returnToken);
     struct retAST* data = (struct retAST*) malloc(sizeof(struct retAST));
-    data->expr = parseExpr(stream);
+    if(get(stream, &parseCursor) == semiToken)
+        data->expr = NULL;
+    else
+        data->expr = parseExpr(stream);
     struct stmtAST* res = (struct stmtAST*) malloc(sizeof(struct stmtAST));
     res->type = 5;
     res->data = (char*)data;
