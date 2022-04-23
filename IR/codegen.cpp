@@ -273,21 +273,40 @@ Value* codegen(struct funcCallAST* call, BasicBlock* block) {
     }
 }
 
-void codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
+BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
     codegen(branch->cond, block, func.blocks.size());
     // printf("rel finished\n");
-    BasicBlock* left = codegen(branch->br1, func, false);
+    BasicBlock* left = new BasicBlock();
+    func.addBasicBlock(left);
+    BasicBlock* left_end =  codegen(branch->br1, func, left);
+    BasicBlock* right = NULL;
+    BasicBlock* right_end = NULL;
     // printf("br1 finished\n");
     // BasicBlock* left = func.blocks[func.blocks.size()-1];
     block->successors.push_back(left->index);
     left->predecessors.push_back(block->index);
     if(branch->br2) {
-        printf("generating right...\n");
-        BasicBlock* right = codegen(branch->br2, func, false);
-        // BasicBlock* right = func.blocks[func.blocks.size()-1];
+        // printf("generating right...\n");
+        right = new BasicBlock();
+        func.addBasicBlock(right);
         block->successors.push_back(right->index);
         right->predecessors.push_back(block->index);
+        right_end = codegen(branch->br2, func, right);
+        // BasicBlock* right = func.blocks[func.blocks.size()-1];
     }
+    BasicBlock* join = new BasicBlock();
+    func.addBasicBlock(join);
+    left_end->successors.push_back(join->index);
+    join->predecessors.push_back(left_end->index);
+    if(right) {
+        right_end->successors.push_back(join->index);
+        join->predecessors.push_back(right->index);
+    }
+    // else {
+    //     block->successors.push_back(join->index);
+    //     join->predecessors.push_back(block->index);
+    // }
+    return join;
 }
 
 void codegen(struct loopAST* loop, Function& func, BasicBlock* block) {
@@ -333,10 +352,16 @@ void codegen(struct varDeclAST* vars, Module mod) {
     }
 }
 
-BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, bool is_func=false) {
+BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block) {
     struct stmtSeqAST* cur = stmts;
-    BasicBlock* curBlock = new BasicBlock();
-    func.addBasicBlock(curBlock);
+    BasicBlock* curBlock = NULL;
+    if(!block){
+        curBlock = new BasicBlock();
+        func.addBasicBlock(curBlock);
+    }
+    else
+        curBlock = block;
+    
     BasicBlock* initBlock = curBlock;
     // printf("block added\n");
     while(cur) {
@@ -353,23 +378,23 @@ BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, bool is_func=false
             }
             case 2: { // branch
                 // printf("handling brh...\n");
-                codegen((struct brhAST*)(cur->stat->data), func, curBlock);
-                BasicBlock* joinBlock = new BasicBlock();
-                func.addBasicBlock(joinBlock);
-                if(((struct brhAST*)(cur->stat->data))->br2) {
-                    BasicBlock* left = func.blocks[func.blocks.size()-3];
-                    BasicBlock* right = func.blocks[func.blocks.size()-2];
-                    left->successors.push_back(joinBlock->index);
-                    right->successors.push_back(joinBlock->index);
-                    joinBlock->predecessors.push_back(left->index);
-                    joinBlock->predecessors.push_back(right->index);
-                }
-                else {
-                    BasicBlock* left = func.blocks[func.blocks.size()-3];
-                    left->successors.push_back(joinBlock->index);
-                    joinBlock->predecessors.push_back(left->index);
-                }
-                curBlock = joinBlock;
+                curBlock = codegen((struct brhAST*)(cur->stat->data), func, curBlock);
+                // BasicBlock* joinBlock = new BasicBlock();
+                // func.addBasicBlock(joinBlock);
+                // if(((struct brhAST*)(cur->stat->data))->br2) {
+                //     BasicBlock* left = func.blocks[func.blocks.size()-3];
+                //     BasicBlock* right = func.blocks[func.blocks.size()-2];
+                //     left->successors.push_back(joinBlock->index);
+                //     right->successors.push_back(joinBlock->index);
+                //     joinBlock->predecessors.push_back(left->index);
+                //     joinBlock->predecessors.push_back(right->index);
+                // }
+                // else {
+                //     BasicBlock* left = func.blocks[func.blocks.size()-3];
+                //     left->successors.push_back(joinBlock->index);
+                //     joinBlock->predecessors.push_back(left->index);
+                // }
+                // curBlock = joinBlock;
                 break;
             }
             case 3: { // while
@@ -402,12 +427,12 @@ BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, bool is_func=false
         }
     }
     printf("block len: %d\n", func.blocks.size());
-    if(is_func) {
-        Value* empty = emptyValue();
-        Instruction* ins = new Instruction();
-        curBlock->addInstruction(empty, empty, returnToken, glob, ins);
-    }
-    return initBlock;
+    // if(is_func) {
+    //     Value* empty = emptyValue();
+    //     Instruction* ins = new Instruction();
+    //     curBlock->addInstruction(empty, empty, returnToken, glob, ins);
+    // }
+    return curBlock;
 }
 
 Module codegen(struct computationAST* comp) {
@@ -422,7 +447,7 @@ Module codegen(struct computationAST* comp) {
     // string main = "main";
     // Function mainFunc = Function(&res, main);
     Function& mainFunc = res.addFunction("main");
-    codegen(comp->stats, mainFunc, true);
+    codegen(comp->stats, mainFunc);
 
     printf("codegen success, dumping...\n");
     
