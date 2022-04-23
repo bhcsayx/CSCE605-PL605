@@ -8,7 +8,7 @@
 
 Module codegen(struct computationAST* comp);
 void codegen(struct varDeclAST* vars, Module mod);
-void codegen(struct stmtSeqAST* stmts, Function& func, bool is_func=false);
+BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, bool is_func=false);
 Value* codegen(struct desiAST* desi, BasicBlock* block, bool is_left=false);
 Value* codegen(struct factorAST* factor, BasicBlock* block);
 Value* codegen(struct termAST* term, BasicBlock* block);

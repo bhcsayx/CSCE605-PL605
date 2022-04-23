@@ -388,7 +388,7 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
             break;
         }
         case ifToken: {
-            // printf("handling branch\n");
+            printf("handling branch\n");
             res = parseBranch(stream);
             // printf("next after if: %d\n", get(stream, &parseCursor));
             break;

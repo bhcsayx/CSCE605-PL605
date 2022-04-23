@@ -1,0 +1,18 @@
+main 
+var a,b,c,d;
+{
+    let a := b+c+d; 
+    let b := a*a+b*b;
+    let a := 5+2*b;
+    let a := 2*c+d;
+    if a > 0 then
+        if b > 0 then
+            let c := 1;
+        fi;
+    else
+        let c := 2;
+    fi;
+    let a := a+c*b+d; 
+    let d := 5 + 2 * 10 + 2;
+    call OutputNum(c)
+}.
