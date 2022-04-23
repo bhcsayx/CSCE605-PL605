@@ -108,7 +108,7 @@ struct factorAST* parseFactor(struct tokenStream stream) {
 
         case callToken: {
             res->type = 3;
-            res->data = parseCall(stream);
+            res->data = parseFacCall(stream);
             break;
         }
 
@@ -120,6 +120,37 @@ struct factorAST* parseFactor(struct tokenStream stream) {
     }
 
     return res;
+}
+
+struct funcCallAST* parseFacCall(struct tokenStream stream) {
+    expect(stream, &parseCursor, callToken);
+    struct funcCallAST* data = (struct funcCallAST*) malloc(sizeof(struct funcCallAST));
+
+    data->funcName = parseIdent(stream);
+    expect(stream, &parseCursor, openparenToken);
+    enum Token next = get(stream, &parseCursor);
+    // printf("call ident success\n");
+    if(next != closeparenToken) {
+        // printf("non empty args...\n");
+        data->args = (struct exprListAST*) malloc(sizeof(struct exprListAST));
+        struct exprListAST* cur = data->args;
+        cur->head = parseExpr(stream);
+        // printf("expr success\n");
+        enum Token expr_next = get(stream, &parseCursor);
+        // printf("first next token: %d\n", expr_next);
+        while(expr_next == commaToken) {
+            expect(stream, &parseCursor, commaToken);
+            cur->next = (struct exprListAST*) malloc(sizeof(struct exprListAST));
+            cur->next->head = parseExpr(stream);
+            cur = cur->next;
+            expr_next = get(stream, &parseCursor);
+            // printf("next token: %d\n", expr_next);
+        }
+    }
+    else
+        data->args = NULL;
+    expect(stream, &parseCursor, closeparenToken);
+    return data;
 }
 
 struct termAST* parseTerm(struct tokenStream stream) {

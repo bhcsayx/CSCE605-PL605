@@ -118,6 +118,7 @@ struct varDeclAST* parseVarDecls(struct tokenStream stream);
 struct factorAST* parseFactor(struct tokenStream stream);
 struct termAST* parseTerm(struct tokenStream stream);
 struct exprAST* parseExpr(struct tokenStream stream);
+struct funcCallAST* parseFacCall(struct tokenStream stream);
 struct relAST* parseRelation(struct tokenStream stream);
 struct stmtAST* parseBranch(struct tokenStream stream);
 struct stmtAST* parseWhile(struct tokenStream stream);
