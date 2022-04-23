@@ -10,6 +10,7 @@ Module codegen(struct computationAST* comp);
 void codegen(struct varDeclAST* vars, Module mod);
 BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block=NULL);
 BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block);
+BasicBlock* codegen(struct loopAST* loop, Function& func, BasicBlock* block);
 Value* codegen(struct desiAST* desi, BasicBlock* block, bool is_left=false);
 Value* codegen(struct factorAST* factor, BasicBlock* block);
 Value* codegen(struct termAST* term, BasicBlock* block);

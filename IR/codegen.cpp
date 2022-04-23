@@ -309,33 +309,52 @@ BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
     return join;
 }
 
-void codegen(struct loopAST* loop, Function& func, BasicBlock* block) {
+BasicBlock* codegen(struct loopAST* loop, Function& func, BasicBlock* block) {
     if(loop->type == 0) {
         BasicBlock* condBlock = new BasicBlock();
         func.addBasicBlock(condBlock);
         block->successors.push_back(condBlock->index);
         condBlock->predecessors.push_back(block->index);
         codegen(loop->cond, condBlock, func.blocks.size());
-        codegen(loop->body, func);
-        BasicBlock* bodyBlock = func.blocks[func.blocks.size()-1];
+
+        BasicBlock* bodyStartBlock = new BasicBlock();
+        func.addBasicBlock(bodyStartBlock);
+        condBlock->successors.push_back(bodyStartBlock->index);
+        bodyStartBlock->predecessors.push_back(condBlock->index);
+        BasicBlock* bodyEndBlock = codegen(loop->body, func, bodyStartBlock);
+        bodyEndBlock->successors.push_back(condBlock->index);
+        condBlock->predecessors.push_back(bodyEndBlock->index);
+
         Value* v1 = constValue(condBlock->index);
         Value* v2 = emptyValue();
         Instruction* ins = new Instruction();
-        bodyBlock->addInstruction(v1, v2, jmpToken, glob, ins);
-        bodyBlock->successors.push_back(condBlock->index);
-        condBlock->successors.push_back(bodyBlock->index);
-        condBlock->predecessors.push_back(bodyBlock->index);
+        bodyEndBlock->addInstruction(v1, v2, jmpToken, glob, ins);
+        
+        BasicBlock* join = new BasicBlock();
+        func.addBasicBlock(join);
+        condBlock->successors.push_back(join->index);
+        join->predecessors.push_back(condBlock->index);
+        return join;
     }
     else {
-        codegen(loop->body, func);
-        BasicBlock* loopBlock = func.blocks[func.blocks.size()-1];
-        codegen(loop->cond, loopBlock, func.blocks.size());
-        // BasicBlock* condBlock = func.blocks[func.blocks.size()-1];
-        block->successors.push_back(loopBlock->index);
-        loopBlock->predecessors.push_back(block->index);
-        loopBlock->successors.push_back(loopBlock->index);
-        // condBlock->predecessors.push_back(loopBlock->index);
-        // condBlock->successors.push_back(loopBlock->index);
+        BasicBlock* bodyStartBlock = new BasicBlock();
+        func.addBasicBlock(bodyStartBlock);
+        block->successors.push_back(bodyStartBlock->index);
+        bodyStartBlock->predecessors.push_back(block->index);
+        BasicBlock* bodyEndBlock = codegen(loop->body, func, bodyStartBlock);
+
+        BasicBlock* condBlock = new BasicBlock();
+        func.addBasicBlock(condBlock);
+        condBlock->predecessors.push_back(bodyEndBlock->index);
+        condBlock->successors.push_back(bodyStartBlock->index);
+        bodyStartBlock->predecessors.push_back(condBlock->index);
+        codegen(loop->cond, condBlock, func.blocks.size());
+
+        BasicBlock* join = new BasicBlock();
+        func.addBasicBlock(join);
+        condBlock->successors.push_back(join->index);
+        join->predecessors.push_back(condBlock->index);
+        return join;
     }
 }
 
@@ -398,23 +417,11 @@ BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block)
                 break;
             }
             case 3: { // while
-                codegen((struct loopAST*)(cur->stat->data), func, curBlock);
-                BasicBlock* joinBlock = new BasicBlock();
-                func.addBasicBlock(joinBlock);
-                BasicBlock* condBlock = func.blocks[func.blocks.size()-3];
-                joinBlock->predecessors.push_back(condBlock->index);
-                condBlock->successors.push_back(joinBlock->index);
-                curBlock = joinBlock;
+                curBlock = codegen((struct loopAST*)(cur->stat->data), func, curBlock);
                 break;
             }
             case 4: { // repeat
-                codegen((struct loopAST*)(cur->stat->data), func, curBlock);
-                BasicBlock* joinBlock = new BasicBlock();
-                func.addBasicBlock(joinBlock);
-                BasicBlock* bodyBlock = func.blocks[func.blocks.size()-1];
-                bodyBlock->successors.push_back(joinBlock->index);
-                joinBlock->predecessors.push_back(bodyBlock->index);
-                curBlock = joinBlock;
+                curBlock = codegen((struct loopAST*)(cur->stat->data), func, curBlock);
                 break;
             }
             default: {
