@@ -171,10 +171,14 @@ struct tokenStream scan(char *input){
     int* id_strlen = (int *)malloc(len * 4);
     char **ids = (char **) malloc(len);
     while(i < len) {
-
         if(*(input+i) == '/' && *(input+i+1) == '/') { // skipping comment
-            while(*(input+i) != '\n')
+            while(*(input+i) != '\n') {
                 i++;
+                if(i >= len)
+                    break;
+            }
+            if(i >= len)
+                break;
             line_number++;
         }
         while(*(input+i) == ' ' || *(input+i) == '\n' || *(input+i) == '\t'){
