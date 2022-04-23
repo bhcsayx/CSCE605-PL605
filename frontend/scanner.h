@@ -63,6 +63,7 @@ enum Token {
 struct tokenStream {
     int* tokens;
     const char** ids;
+    int *id_strlen;
     int *numbers;
     int token_len;
     int int_len;

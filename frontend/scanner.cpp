@@ -168,6 +168,7 @@ struct tokenStream scan(char *input){
     int len = strlen(input);
     int* output = (int *) malloc(len * 4);
     int* numbers = (int *) malloc(len * 4);
+    int* id_strlen = (int *)malloc(len * 4);
     char **ids = (char **) malloc(len);
     while(i < len) {
 
@@ -215,6 +216,7 @@ struct tokenStream scan(char *input){
             // printf("\n");
             output[j++] = ident;
             ids[i_id] = (char *) malloc(status);
+            id_strlen[i_id] = status;
             strncpy(ids[i_id++], input+i, status);
             i += status;
             // printf("current pos: %d\n", i);
@@ -239,6 +241,7 @@ struct tokenStream scan(char *input){
     result.tokens = output;
     result.numbers = numbers;
     result.ids = ids;
+    result.id_strlen = id_strlen;
     result.token_len = j;
     result.int_len = i_int;
     result.id_len = i_id;

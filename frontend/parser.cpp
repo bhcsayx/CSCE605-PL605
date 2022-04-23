@@ -39,8 +39,9 @@ struct typeDeclAST parseTypeDecl(struct tokenStream stream) {
 
 char* parseIdent(struct tokenStream stream) {
     expect(stream, &parseCursor, ident);
-    char* dest = (char*) malloc(strlen(stream.ids[idCursor]));
-    strncpy(dest, stream.ids[idCursor], strlen(stream.ids[idCursor]));
+    char* dest = (char*) malloc(stream.id_strlen[idCursor]+1);
+    strncpy(dest, stream.ids[idCursor], stream.id_strlen[idCursor]);
+    dest[stream.id_strlen[idCursor]] = '\0';
     idCursor++;
     // printf("ident: %s\n", dest);
     return dest;
