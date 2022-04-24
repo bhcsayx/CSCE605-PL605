@@ -360,6 +360,15 @@ BasicBlock* codegen(struct loopAST* loop, Function& func, BasicBlock* block) {
     }
 }
 
+Value* codegen(struct retAST* _return, BasicBlock* block) {
+    Value* v1 = emptyValue();
+    Value* v2 = emptyValue();
+    if(_return->expr)
+        v1 = codegen(_return->expr, block);
+    Instruction* ins = new Instruction();
+    block->addInstruction(v1, v2, returnToken, glob, ins);
+}
+
 void codegen(struct varDeclAST* vars, Module& mod) {
     // printf("processing vardecl\n");
     glob.symbolTable.newScope();
@@ -425,6 +434,10 @@ BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block)
             }
             case 4: { // repeat
                 curBlock = codegen((struct loopAST*)(cur->stat->data), func, curBlock);
+                break;
+            }
+            case 5: {
+                codegen((struct retAST*)(cur->stat->data), curBlock);
                 break;
             }
             default: {

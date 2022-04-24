@@ -18,6 +18,7 @@ Value* codegen(struct exprAST* expr, BasicBlock* block);
 Value* codegen(struct relAST* rel, BasicBlock* block, int jmpIndex);
 Value* codegen(struct assignAST* assign, BasicBlock* block);
 Value* codegen(struct funcCallAST* call, BasicBlock* block);
+Value* codegen(struct retAST* _return, BasicBlock* block);
 std::vector<Value*> codegen(struct exprListAST* list, BasicBlock* block);
 
 #endif
