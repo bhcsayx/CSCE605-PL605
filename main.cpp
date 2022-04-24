@@ -60,5 +60,6 @@ int main(int argc, char *argv[]) {
     // printf("get var length: %d\n", mod.varNames.size());
     SSABuilder builder = SSABuilder(mod);
     builder.computeDomTree();
+    builder.computeDFTree();
     exit(0);
 }

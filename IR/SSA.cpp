@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
+#include <algorithm>
 
 #include "../frontend/scanner.h"
 #include "IR.h"
@@ -44,13 +46,13 @@ void SSABuilder::recurDFS(vector<BasicBlock*>* blocks, BasicBlock* cur, vector<B
 void domDFS(vector<BasicBlock*>* blocks, BasicBlock* block, map<BasicBlock*, bool>* visitMap) {
     if(!(*(visitMap))[block]) {
         (*(visitMap))[block] = true;
-        printf("domdfs: visited %d\n", block->index);
+        // printf("domdfs: visited %d\n", block->index);
         // for(auto id: block->successors) {
         //     printf("suc of %d: %d\n", block->index, id);
         // }
         for(auto suc: block->successors) {
             auto next = (*blocks)[suc];
-            printf("suc of %d: %d\n", block->index, next->index);
+            // printf("suc of %d: %d\n", block->index, next->index);
             if(!(*(visitMap))[next]) {
                 // printf("domdfs: new suc %d\n", next->index);
                 domDFS(blocks, next, visitMap);
@@ -63,18 +65,14 @@ void SSABuilder::computeDomTree() {
     map<string, vector<BasicBlock*>*>::iterator iter = blocks.begin();
     while(iter != blocks.end()) {
         auto funcName = iter->first;
-        printf("name: %s\n", funcName.c_str());
+        // printf("name: %s\n", funcName.c_str());
         dfs[funcName] = new vector<BasicBlock*>; int mask = 0;
         // printf("blocks len: %d\n", iter->second->size());
         recurDFS(iter->second, iter->second->front(), dfs[funcName], mask);
 
         map<BasicBlock*, bool>* visitMap = new map<BasicBlock*, bool>;
-        // map<BasicBlock*, BasicBlock*> dom;
-        // for(auto b: *dfs[funcName]) {
-        //     dom[b] = NULL;
-        // }
         for(auto b: *dfs[funcName]) {
-            printf("dfs: %d\n", b->index);
+            // printf("dfs: %d\n", b->index);
             for(auto n: *dfs[funcName])
                 (*visitMap)[n] = false;
             (*visitMap)[b] = true;
@@ -89,27 +87,66 @@ void SSABuilder::computeDomTree() {
                 }
             }
         }
-        // map<BasicBlock*, BasicBlock*>::iterator d_iter = dom.begin(); 
-        // while(d_iter != dom.end()) {
-        //     printf("key: %d, value: %d\n", d_iter->first->index, d_iter->second == NULL?0:d_iter->second->index);
-        //     d_iter++;
+    
+        // map<BasicBlock*, vector<BasicBlock*>*>::iterator dom_iter = DomTrees[funcName].begin();
+        // while(dom_iter != DomTrees[funcName].end()) {
+        //     auto dor = dom_iter->first->index;
+        //     printf("dor: %d\n", (*(dom_iter->second)).size());
+        //     for(auto b: *(dom_iter->second)) {
+        //         printf("dom: %d -> %d\n", dor, b->index);
+        //     }
+        //     dom_iter++;
         // }
-        // DomTrees[funcName] = new map<BasicBlock*, vector<BasicBlock*>*>;
-        // for(auto b: *(iter->second)) {
-        //     // DomTrees[funcName][b] = new vector<BasicBlock*>;
-        //     if(dom[b])
-        //         (DomTrees[funcName][dom[b]])->push_back(b);
-        // }
-        map<BasicBlock*, vector<BasicBlock*>*>::iterator dom_iter = DomTrees[funcName].begin();
-        while(dom_iter != DomTrees[funcName].end()) {
-            auto dor = dom_iter->first->index;
-            printf("dor: %d\n", (*(dom_iter->second)).size());
-            for(auto b: *(dom_iter->second)) {
-                printf("dom: %d -> %d\n", dor, b->index);
-            }
-            dom_iter++;
-        }
         
         iter++;
     }
+}
+
+void SSABuilder::computeDFTree() {
+    map<string, vector<BasicBlock*>*>::iterator iter = blocks.begin();
+    
+    while(iter != blocks.end()) {
+        auto funcName = iter->first;
+        // printf("name: %s\n", funcName.c_str());
+        for(auto blk: *blocks[funcName]) {
+            printf("blk: %d\n", blk->index);
+            auto doms = DomTrees[funcName][blk];
+            // printf("doms: %d\n", doms);
+            if(DFTrees[funcName][blk] == NULL)
+                DFTrees[funcName][blk] = new vector<BasicBlock*>;
+            if(doms) {
+                for(auto d: *doms) {
+                    if(DFTrees[funcName][d] == NULL)
+                        DFTrees[funcName][d] = new vector<BasicBlock*>;
+                    printf("%d domed by %d\n", blk->index, d->index);
+                    for(auto suc: blk->successors) {
+                        auto suc_block = (*blocks[funcName])[suc];
+                        auto suc_dom = DomTrees[funcName][suc_block];
+                        printf("%d pred %d domed by %d\n", suc, blk->index, d->index);
+                        if(suc != d->index && find((*suc_dom).begin(), (*suc_dom).end(), d) == (*suc_dom).end()) {
+                            printf("%d df %d\n", suc, d->index);
+                            (DFTrees[funcName][d])->push_back(suc_block);
+                        }
+                        if(find((*suc_dom).begin(), (*suc_dom).end(), blk) == (*suc_dom).end()) {
+                            if(find(((DFTrees[funcName][blk]))->begin(), ((DFTrees[funcName][blk]))->end(), suc_block) == ((DFTrees[funcName][blk]))->end()) {
+                                printf("%d df %d\n", suc, blk->index);
+                                (DFTrees[funcName][blk])->push_back(suc_block);
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+        map<BasicBlock*, vector<BasicBlock*>*>::iterator df_iter = DFTrees[funcName].begin();
+        while(df_iter != DFTrees[funcName].end()) {
+            auto dor = df_iter->first->index;
+            // printf("dor: %d\n", (*(df_iter->second)).size());
+            for(auto b: *(df_iter->second)) {
+                printf("df: %d -> %d\n", dor, b->index);
+            }
+            df_iter++;
+        }
+        iter++;
+    }    
 }
