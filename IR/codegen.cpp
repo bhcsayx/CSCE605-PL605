@@ -303,10 +303,10 @@ BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
         right_end->successors.push_back(join->index);
         join->predecessors.push_back(right->index);
     }
-    // else {
-    //     block->successors.push_back(join->index);
-    //     join->predecessors.push_back(block->index);
-    // }
+    else {
+        block->successors.push_back(join->index);
+        join->predecessors.push_back(block->index);
+    }
     return join;
 }
 
@@ -347,6 +347,7 @@ BasicBlock* codegen(struct loopAST* loop, Function& func, BasicBlock* block) {
         BasicBlock* condBlock = new BasicBlock();
         func.addBasicBlock(condBlock);
         condBlock->predecessors.push_back(bodyEndBlock->index);
+        bodyEndBlock->successors.push_back(condBlock->index);
         condBlock->successors.push_back(bodyStartBlock->index);
         bodyStartBlock->predecessors.push_back(condBlock->index);
         codegen(loop->cond, condBlock, func.blocks.size());

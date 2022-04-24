@@ -19,12 +19,13 @@ public:
     vector<string> varNames;
     map<string, vector<BasicBlock*>*> blocks;
     map<string, vector<BasicBlock*>*> dfs;
-    map<string, map<BasicBlock*, vector<BasicBlock*>*>*> DomTrees;
-    map<string, map<BasicBlock*, vector<BasicBlock*>*>*> DFTrees;
+    map<string, map<BasicBlock*, vector<BasicBlock*>*>> DomTrees;
+    map<string, map<BasicBlock*, vector<BasicBlock*>*>> DFTrees;
 
-    map<BasicBlock*, bool> visited;
+    map<BasicBlock*, BasicBlock*>fa;
+    map<BasicBlock*, int>sdom;
 
-    void SSABuilder::recurDFS(vector<BasicBlock*>* blocks, BasicBlock* cur, vector<BasicBlock*>* dest, int& mask);
+    void SSABuilder::recurDFS(vector<BasicBlock*>* blocks, BasicBlock* cur, vector<BasicBlock*>* dest, int& mask); //, int& dfnid);
 
     SSABuilder(Module mod);
     void computeDomTree();
