@@ -22,6 +22,7 @@ string val2txt(Value* val) {
             string res("%");
             auto cstr = std::to_string(val->index);
             res.append(cstr.c_str());
+            // string res = val->name;
             return res;
         }
         case Type::constVal: {

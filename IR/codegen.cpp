@@ -39,6 +39,7 @@ Value* codegen(struct desiAST* desi, BasicBlock* block, bool is_left=false) {
             res->name = name;
             return res;
         }
+        glob.values[index]->name = name;
         return glob.values[index];
     }
 }
@@ -240,7 +241,7 @@ Value* codegen(struct relAST* rel, BasicBlock* block, int jmpIndex) {
 }
 
 Value* codegen(struct funcCallAST* call, BasicBlock* block) {
-    printf("handling call %s\n", call->funcName);
+    // printf("handling call %s\n", call->funcName);
     string name(call->funcName);
     Instruction* ins = new Instruction();
     Value* empty = emptyValue();
@@ -358,12 +359,13 @@ BasicBlock* codegen(struct loopAST* loop, Function& func, BasicBlock* block) {
     }
 }
 
-void codegen(struct varDeclAST* vars, Module mod) {
+void codegen(struct varDeclAST* vars, Module& mod) {
     // printf("processing vardecl\n");
     glob.symbolTable.newScope();
     struct varDeclAST* cur = vars;
     while(cur) {
         string name(cur->name);
+        mod.varNames.push_back(name);
         // printf("adding var: %s\n", name.c_str());
         int value = -1;
         glob.symbolTable.insertSymbol(name, value);
@@ -429,11 +431,11 @@ BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block)
             }
         }
         cur = cur->next;
-        if(cur == NULL) {
-            printf("finished\n");
-        }
+        // if(cur == NULL) {
+        //     printf("finished\n");
+        // }
     }
-    printf("block len: %d\n", func.blocks.size());
+    // printf("block len: %d\n", func.blocks.size());
     // if(is_func) {
     //     Value* empty = emptyValue();
     //     Instruction* ins = new Instruction();

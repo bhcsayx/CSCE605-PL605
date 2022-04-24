@@ -89,6 +89,7 @@ class Module {
 public:
     int funcLen = 0;
     std::vector<Function> funcs;
+    std::vector<string> varNames;
 
     // Module();
     // ~Module();

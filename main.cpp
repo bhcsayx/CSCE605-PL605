@@ -12,6 +12,7 @@
 #include "graphviz/graphviz.h"
 
 #include "IR/codegen.h"
+#include "IR/SSA.h"
 
 int main(int argc, char *argv[]) {
 
@@ -56,6 +57,8 @@ int main(int argc, char *argv[]) {
     
     Module mod = codegen(root);
     dump2txt(mod);
-
+    // printf("get var length: %d\n", mod.varNames.size());
+    SSABuilder builder = SSABuilder(mod);
+    builder.computeDomTree();
     exit(0);
 }
