@@ -8,6 +8,7 @@
 
 Module codegen(struct computationAST* comp);
 void codegen(struct varDeclAST* vars, Module& mod);
+void codegen(struct funcAST* func, Module& mod);
 BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block=NULL);
 BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block);
 BasicBlock* codegen(struct loopAST* loop, Function& func, BasicBlock* block);

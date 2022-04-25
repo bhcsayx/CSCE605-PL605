@@ -72,6 +72,7 @@ struct tokenStream {
 
 
 struct tokenStream scan(char *input);
+int is_id_char(char c);
 int scan_for_op(char *input);
 int scan_for_keyword(char *input);
 int scan_for_number(char *input);

@@ -129,6 +129,7 @@ struct funcCallAST* parseFacCall(struct tokenStream stream) {
     data->funcName = parseIdent(stream);
     expect(stream, &parseCursor, openparenToken);
     enum Token next = get(stream, &parseCursor);
+    printf("cur next:%d\n", next);
     // printf("call ident success\n");
     if(next != closeparenToken) {
         // printf("non empty args...\n");
@@ -137,14 +138,14 @@ struct funcCallAST* parseFacCall(struct tokenStream stream) {
         cur->head = parseExpr(stream);
         // printf("expr success\n");
         enum Token expr_next = get(stream, &parseCursor);
-        // printf("first next token: %d\n", expr_next);
+        printf("first next token: %d\n", expr_next);
         while(expr_next == commaToken) {
             expect(stream, &parseCursor, commaToken);
             cur->next = (struct exprListAST*) malloc(sizeof(struct exprListAST));
             cur->next->head = parseExpr(stream);
             cur = cur->next;
             expr_next = get(stream, &parseCursor);
-            // printf("next token: %d\n", expr_next);
+            printf("next token: %d\n", expr_next);
         }
     }
     else
@@ -374,12 +375,12 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
 
     switch(start) {
         case letToken: {
-            // printf("handling assign\n");
+            printf("handling assign\n");
             res = parseAssign(stream);
             break;
         }
         case callToken: {
-            // printf("handling call\n");
+            printf("handling call\n");
             res = parseCall(stream);
             // printf("args: %d\n", ((struct funcCallAST*)(res->data))->args);
             // if(((struct funcCallAST*)(res->data))->args != NULL) {
@@ -394,18 +395,26 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
             break;
         }
         case whileToken: {
+            printf("handling while\n");
             res = parseWhile(stream);
             break;
         }
         case repeatToken: {
+            printf("handling repeat");
             res = parseRepeat(stream);
             break;
         }
         case returnToken: {
+            printf("handling return\n");
             res = parseReturn(stream);
+            printf("return finished\n");
             break;
         }
         default: {
+            if(start == endToken) {
+                // printf("empty function\n")
+                return NULL;
+            }
             printf("stmt currently not supported...%d\n", start);
             exit(-1);
             break;
@@ -462,6 +471,7 @@ struct funcAST* parseFuncDecl(struct tokenStream stream) {
         expect(stream, &parseCursor, voidToken);
     expect(stream, &parseCursor, funcToken);
     res->name = parseIdent(stream);
+    printf("func name: %s\n", res->name);
 
     // parse formal params
     expect(stream, &parseCursor, openparenToken);
@@ -481,7 +491,7 @@ struct funcAST* parseFuncDecl(struct tokenStream stream) {
             }
         }
     }
-    printf("next: %d\n", get(stream, &parseCursor));
+    // printf("next: %d\n", get(stream, &parseCursor));
     expect(stream, &parseCursor, closeparenToken);
     next = get(stream, &parseCursor);
     if(next == semiToken)
@@ -489,12 +499,12 @@ struct funcAST* parseFuncDecl(struct tokenStream stream) {
     // printf("next: %d\n", get(stream, &parseCursor));
 
     // parse func body
+    expect(stream, &parseCursor, beginToken);
     next = get(stream, &parseCursor);
     if(next == varToken || next == arrayToken)
         res->decls = parseVarDecls(stream);
     else
         res->decls = NULL;
-    expect(stream, &parseCursor, beginToken);
     res->stmts = parseStmtSequence(stream);
     expect(stream, &parseCursor, endToken);
     next = get(stream, &parseCursor);

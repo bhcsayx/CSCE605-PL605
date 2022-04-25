@@ -371,7 +371,6 @@ Value* codegen(struct retAST* _return, BasicBlock* block) {
 
 void codegen(struct varDeclAST* vars, Module& mod) {
     // printf("processing vardecl\n");
-    glob.symbolTable.newScope();
     struct varDeclAST* cur = vars;
     while(cur) {
         string name(cur->name);
@@ -458,13 +457,24 @@ BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block)
     return curBlock;
 }
 
+void codegen(struct funcAST* func, Module& mod) {
+    Function res = Function(func->name);
+    // glob.symbolTable
+}
+
 Module codegen(struct computationAST* comp) {
     Module res;
 
     // add global var decls
+    glob.symbolTable.newScope();
     codegen(comp->vars, res);
     // printf("type decl success.\n");
-    // TODO: add func decl handling
+    // add func decl handling
+    auto funcPtr = comp->funcs;
+    while(funcPtr != NULL) {
+        codegen(funcPtr->func, res);
+        funcPtr = funcPtr->next;
+    }
 
     // handling main function
     // string main = "main";

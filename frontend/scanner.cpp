@@ -102,7 +102,7 @@ int scan_for_keyword(char *input) {
         return voidToken;
     if(strncmp((const char*)input, "od", 2) == 0)
         return odToken;
-    if(strncmp((const char*)input, "fi", 2) == 0)
+    if(strncmp((const char*)input, "fi", 2) == 0 && !is_id_char(*(input+2)))
         return fiToken;
     if(strncmp((const char*)input, "else", 4) == 0)
         return elseToken;
