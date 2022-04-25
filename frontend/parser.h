@@ -102,9 +102,21 @@ struct stmtSeqAST {
     struct stmtSeqAST* next;
 };
 
+struct funcAST {
+    char* name;
+    struct varDeclAST* params;
+    struct varDeclAST* decls;
+    struct stmtSeqAST* stmts;
+};
+
+struct funcListAST {
+    struct funcAST* func;
+    struct funcListAST* next;
+};
+
 struct computationAST {
     struct varDeclAST* vars;
-    // struct funcAST* funcs;
+    struct funcListAST* funcs;
     struct stmtSeqAST* stats;
 };
 
@@ -129,5 +141,6 @@ struct stmtAST* parseAssign(struct tokenStream stream);
 struct stmtAST* parseCall(struct tokenStream stream);
 struct stmtAST* parseStmt(struct tokenStream stream);
 struct stmtSeqAST* parseStmtSequence(struct tokenStream stream);
+struct funcAST* parseFuncDecl(struct tokenStream stream);
 
 #endif

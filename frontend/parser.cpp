@@ -13,7 +13,7 @@ enum Token get(struct tokenStream stream, int *cursor) {
 
 void expect(struct tokenStream stream, int *cursor, enum Token expected) {
     if(stream.tokens[*cursor] != expected) {
-        printf("parser error: expected %d\n", expected);
+        printf("parser error: expected %d, found %d\n", expected, stream.tokens[*cursor]);
         exit(-1);
     }
 
@@ -454,6 +454,56 @@ struct stmtSeqAST* parseStmtSequence(struct tokenStream stream) {
     return stmts;
 }
 
+struct funcAST* parseFuncDecl(struct tokenStream stream) {
+    enum Token start = get(stream, &parseCursor);
+    struct funcAST* res = (struct funcAST*)malloc(sizeof(struct funcAST));
+
+    if(start == voidToken)
+        expect(stream, &parseCursor, voidToken);
+    expect(stream, &parseCursor, funcToken);
+    res->name = parseIdent(stream);
+
+    // parse formal params
+    expect(stream, &parseCursor, openparenToken);
+    enum Token next = get(stream, &parseCursor);
+    res->params = NULL; struct varDeclAST* cur = res->params;
+    if(next != closeparenToken) {
+        while(next != closeparenToken) {
+            cur = (struct varDeclAST*)malloc(sizeof(struct varDeclAST));
+            cur->type.type = 0;
+            cur->name = parseIdent(stream);
+            cur->next = NULL;
+            cur = cur->next;
+            next = get(stream, &parseCursor);
+            if(next == commaToken) {
+                expect(stream, &parseCursor, commaToken);
+                next = get(stream, &parseCursor);
+            }
+        }
+    }
+    printf("next: %d\n", get(stream, &parseCursor));
+    expect(stream, &parseCursor, closeparenToken);
+    next = get(stream, &parseCursor);
+    if(next == semiToken)
+        expect(stream, &parseCursor, semiToken);
+    // printf("next: %d\n", get(stream, &parseCursor));
+
+    // parse func body
+    next = get(stream, &parseCursor);
+    if(next == varToken || next == arrayToken)
+        res->decls = parseVarDecls(stream);
+    else
+        res->decls = NULL;
+    expect(stream, &parseCursor, beginToken);
+    res->stmts = parseStmtSequence(stream);
+    expect(stream, &parseCursor, endToken);
+    next = get(stream, &parseCursor);
+    if(next == semiToken)
+        expect(stream, &parseCursor, semiToken);
+
+    return res;
+}
+
 struct computationAST* parse(struct tokenStream stream) {
 
     struct computationAST* root = (struct computationAST*) malloc(sizeof(struct computationAST));
@@ -465,11 +515,22 @@ struct computationAST* parse(struct tokenStream stream) {
         root->vars = vars;
     }
 
-    // next = get(stream, &parseCursor);
-    // if(next == voidToken || next == funcToken) {
-    //     struct funcAST* funcs = parseFuncDecls(stream);
-    //     root.funcs = funcs;
-    // }
+    next = get(stream, &parseCursor);
+    root->funcs = NULL;
+    if(next == voidToken || next == funcToken) {
+        root->funcs = (struct funcListAST*)malloc(sizeof(struct funcListAST));
+        struct funcListAST* cur = root->funcs;
+        while(next == voidToken || next == funcToken) {
+            cur->func = parseFuncDecl(stream);
+            next = get(stream, &parseCursor);
+            if(next == voidToken || next == funcToken) {
+                cur->next = (struct funcListAST*)malloc(sizeof(struct funcListAST));
+                cur = cur->next;
+            }
+        }
+        cur->next = NULL;
+    }
+    printf("funcdecl finished\n");
 
     expect(stream, &parseCursor, beginToken);
     root->stats = parseStmtSequence(stream);
