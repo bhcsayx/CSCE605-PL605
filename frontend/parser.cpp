@@ -52,7 +52,7 @@ char* parseNumber(struct tokenStream stream) {
     const char* dest = (const char*) malloc(sizeof(int));
     strncpy(dest, (const char*)&(stream.numbers[numCursor]), sizeof(int));
     numCursor++;
-    // printf("num: %d\n", *(int*)dest);
+    printf("num: %d\n", *(int*)dest);
     return dest;
 }
 
@@ -109,6 +109,7 @@ struct factorAST* parseFactor(struct tokenStream stream) {
         case callToken: {
             res->type = 3;
             res->data = parseFacCall(stream);
+            printf("faccall: %d\n", res->data);
             break;
         }
 
@@ -129,16 +130,17 @@ struct funcCallAST* parseFacCall(struct tokenStream stream) {
     data->funcName = parseIdent(stream);
     expect(stream, &parseCursor, openparenToken);
     enum Token next = get(stream, &parseCursor);
-    printf("cur next:%d\n", next);
+    // printf("cur next:%d\n", next);
     // printf("call ident success\n");
     if(next != closeparenToken) {
-        // printf("non empty args...\n");
+        // printf("non empty args...%d\n", next);
         data->args = (struct exprListAST*) malloc(sizeof(struct exprListAST));
         struct exprListAST* cur = data->args;
         cur->head = parseExpr(stream);
+        // printf("term: %d\n", cur->head->term);
         // printf("expr success\n");
         enum Token expr_next = get(stream, &parseCursor);
-        printf("first next token: %d\n", expr_next);
+        // printf("first next token: %d\n", expr_next);
         while(expr_next == commaToken) {
             expect(stream, &parseCursor, commaToken);
             cur->next = (struct exprListAST*) malloc(sizeof(struct exprListAST));
@@ -147,6 +149,7 @@ struct funcCallAST* parseFacCall(struct tokenStream stream) {
             expr_next = get(stream, &parseCursor);
             printf("next token: %d\n", expr_next);
         }
+        cur->next = NULL;
     }
     else
         data->args = NULL;
@@ -375,12 +378,12 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
 
     switch(start) {
         case letToken: {
-            printf("handling assign\n");
+            // printf("handling assign\n");
             res = parseAssign(stream);
             break;
         }
         case callToken: {
-            printf("handling call\n");
+            // printf("handling call\n");
             res = parseCall(stream);
             // printf("args: %d\n", ((struct funcCallAST*)(res->data))->args);
             // if(((struct funcCallAST*)(res->data))->args != NULL) {
@@ -389,30 +392,30 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
             break;
         }
         case ifToken: {
-            printf("handling branch\n");
+            // printf("handling branch\n");
             res = parseBranch(stream);
             // printf("next after if: %d\n", get(stream, &parseCursor));
             break;
         }
         case whileToken: {
-            printf("handling while\n");
+            // printf("handling while\n");
             res = parseWhile(stream);
             break;
         }
         case repeatToken: {
-            printf("handling repeat");
+            // printf("handling repeat");
             res = parseRepeat(stream);
             break;
         }
         case returnToken: {
-            printf("handling return\n");
+            // printf("handling return\n");
             res = parseReturn(stream);
-            printf("return finished\n");
+            // printf("return finished\n");
             break;
         }
         default: {
             if(start == endToken) {
-                // printf("empty function\n")
+                printf("empty function\n");
                 return NULL;
             }
             printf("stmt currently not supported...%d\n", start);
@@ -427,6 +430,8 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
 struct stmtSeqAST* parseStmtSequence(struct tokenStream stream) {
     struct stmtSeqAST* stmts = (struct stmtSeqAST*) malloc(sizeof(struct stmtSeqAST));
     stmts->stat = parseStmt(stream);
+    if(!(stmts->stat))
+        return NULL;
     enum Token next = get(stream, &parseCursor);
 
     struct stmtSeqAST* cur = stmts;
@@ -476,10 +481,11 @@ struct funcAST* parseFuncDecl(struct tokenStream stream) {
     // parse formal params
     expect(stream, &parseCursor, openparenToken);
     enum Token next = get(stream, &parseCursor);
-    res->params = NULL; struct varDeclAST* cur = res->params;
+    res->params = NULL;
     if(next != closeparenToken) {
+        res->params = (struct varDeclAST*)malloc(sizeof(struct varDeclAST));
+        struct varDeclAST* cur = res->params;
         while(next != closeparenToken) {
-            cur = (struct varDeclAST*)malloc(sizeof(struct varDeclAST));
             cur->type.type = 0;
             cur->name = parseIdent(stream);
             cur->next = NULL;
@@ -488,6 +494,8 @@ struct funcAST* parseFuncDecl(struct tokenStream stream) {
             if(next == commaToken) {
                 expect(stream, &parseCursor, commaToken);
                 next = get(stream, &parseCursor);
+                if(next != closeparenToken)
+                    cur = (struct varDeclAST*)malloc(sizeof(struct varDeclAST));
             }
         }
     }

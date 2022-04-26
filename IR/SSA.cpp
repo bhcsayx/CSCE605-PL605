@@ -66,6 +66,10 @@ void SSABuilder::computeDomTree() {
     while(iter != blocks.end()) {
         auto funcName = iter->first;
         // printf("name: %s\n", funcName.c_str());
+        if(iter->second->size() == 0) {
+            iter++;
+            continue;
+        }
         dfs[funcName] = new vector<BasicBlock*>; int mask = 0;
         // printf("blocks len: %d\n", iter->second->size());
         recurDFS(iter->second, iter->second->front(), dfs[funcName], mask);
@@ -108,6 +112,10 @@ void SSABuilder::computeDFTree() {
     while(iter != blocks.end()) {
         auto funcName = iter->first;
         // printf("name: %s\n", funcName.c_str());
+        if(iter->second->size() == 0) {
+            iter++;
+            continue;
+        }
         for(auto blk: *blocks[funcName]) {
             printf("blk: %d\n", blk->index);
             auto doms = DomTrees[funcName][blk];

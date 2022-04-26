@@ -28,7 +28,7 @@ Value* codegen(struct desiAST* desi, BasicBlock* block, bool is_left=false) {
             return res;
         }
         int index = glob.symbolTable.lookupSymbol(name);
-        // printf("index of var %s is %d\n", name.c_str(), index);
+        printf("index of var %s is %d\n", name.c_str(), index);
         if (index == -2) {
             printf("error looking up symbol in desi\n");
             exit(-1);
@@ -254,7 +254,7 @@ Value* codegen(struct funcCallAST* call, BasicBlock* block) {
         Value* res = block->addInstruction(num, empty, writeToken, glob, ins);
         return res;
     }
-    else if(name == "OutputNL") {
+    else if(name == "OutputNewLine") {
         Value* res = block->addInstruction(empty, empty, writeNLToken, glob, ins);
         return res;
     }
@@ -374,8 +374,9 @@ void codegen(struct varDeclAST* vars, Module& mod) {
     struct varDeclAST* cur = vars;
     while(cur) {
         string name(cur->name);
-        mod.varNames.push_back(name);
-        // printf("adding var: %s\n", name.c_str());
+        if(find(mod.varNames.begin(), mod.varNames.end(), name) == mod.varNames.end())
+            mod.varNames.push_back(name);
+        printf("adding var: %s\n", name.c_str());
         int value = -1;
         glob.symbolTable.insertSymbol(name, value);
         cur = cur->next;
@@ -397,17 +398,18 @@ BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block)
     while(cur) {
         switch(cur->stat->type) {
             case 0: { // assign'
-                // printf("handling assign...\n");
+                printf("handling assign...\n");
                 codegen((struct assignAST*)(cur->stat->data), curBlock);
                 break;
             }
             case 1: { // funccall
-                // printf("handling funccall...\n");
+                printf("handling funccall...\n");
                 codegen((struct funcCallAST*)(cur->stat->data), curBlock);
+                printf("call finished\n");
                 break;
             }
             case 2: { // branch
-                // printf("handling brh...\n");
+                printf("handling brh...\n");
                 curBlock = codegen((struct brhAST*)(cur->stat->data), func, curBlock);
                 // BasicBlock* joinBlock = new BasicBlock();
                 // func.addBasicBlock(joinBlock);
@@ -428,14 +430,17 @@ BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block)
                 break;
             }
             case 3: { // while
+                printf("handling while\n");
                 curBlock = codegen((struct loopAST*)(cur->stat->data), func, curBlock);
                 break;
             }
             case 4: { // repeat
+                printf("handling repeat\n");
                 curBlock = codegen((struct loopAST*)(cur->stat->data), func, curBlock);
                 break;
             }
             case 5: {
+                printf("hendling return\n");
                 codegen((struct retAST*)(cur->stat->data), curBlock);
                 break;
             }
@@ -458,8 +463,15 @@ BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block)
 }
 
 void codegen(struct funcAST* func, Module& mod) {
-    Function res = Function(func->name);
-    // glob.symbolTable
+    printf("codegen %s\n", func->name);
+    Function& res = mod.addFunction(func->name);
+    glob.symbolTable.newScope();
+    if(func->params)
+        codegen(func->params, mod);
+    if(func->decls)
+        codegen(func->decls, mod);
+    if(func->stmts)
+        codegen(func->stmts, res);
 }
 
 Module codegen(struct computationAST* comp) {
