@@ -10,6 +10,8 @@
 
 using namespace std;
 
+extern Global glob;
+
 SSABuilder::SSABuilder(Module mod) {
     for(auto func: mod.funcs) { 
         vector<BasicBlock *>* tmp = new vector<BasicBlock *>;
@@ -157,4 +159,47 @@ void SSABuilder::computeDFTree() {
         }
         iter++;
     }    
+}
+
+void SSABuilder::insertPhiNode() {
+    map<string, vector<BasicBlock*>*>::iterator iter = blocks.begin();
+    
+    while(iter != blocks.end()) {
+        auto funcName = iter->first;
+        printf("name: %s\n", funcName.c_str());
+        printf("blocks size:%d\n", iter->second->size());
+        if(iter->second->size() == 0) {
+            iter++;
+            continue;
+        }
+        for(auto blk: *blocks[funcName]) {
+            phiNodes[funcName][blk] = new vector<string>;
+            for(auto ins: blk->instructions) {
+                if(ins->opcode == OpCode::MOVE) {
+                    printf("find assign to %s in blk %d\n", ins->op2->name.c_str(), blk->index);
+                    if(ins->op2->name != "") {
+                        auto dfts = DFTrees[funcName][blk];
+                        for(auto df: *dfts) {
+                            if(!phiNodes[funcName][df])
+                                phiNodes[funcName][df] = new vector<string>;
+                            if(find(phiNodes[funcName][df]->begin(), phiNodes[funcName][df]->end(), ins->op2->name) == phiNodes[funcName][df]->end()) {
+                                printf("phi: %s in block %d\n", ins->op2->name.c_str(), df->index);
+                                phiNodes[funcName][df]->push_back(ins->op2->name);
+                                Value* v1 = new Value(); Value* v2 = new Value();
+                                Instruction *place = new Instruction();
+                                v1->name = ins->op2->name; v2->name = ins->op2->name;
+                                place->op1 = v1; place->op2 = v2;
+                                place->opcode = OpCode::PHI;
+                                place->dest = new Value();
+                                glob.addValue(place->dest);
+                                place->dest->name = ins->op2->name;
+                                df->instructions.insert(df->instructions.begin(), place);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        iter++;
+    }
 }

@@ -68,7 +68,7 @@ string op2txt(enum OpCode op) {
             return res;
         }
         case OpCode::PHI: {
-            string res("add");
+            string res("PHI");
             return res;
         }
         case OpCode::END: {

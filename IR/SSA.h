@@ -22,14 +22,16 @@ public:
     map<string, map<BasicBlock*, vector<BasicBlock*>*>> DomTrees;
     map<string, map<BasicBlock*, vector<BasicBlock*>*>> DFTrees;
 
-    map<BasicBlock*, BasicBlock*>fa;
-    map<BasicBlock*, int>sdom;
+    // map<string, map<string, vector<BasicBlock*>*>>blocksOf;
+    map<string, map<BasicBlock*, vector<string>*>> phiNodes;
+
 
     void SSABuilder::recurDFS(vector<BasicBlock*>* blocks, BasicBlock* cur, vector<BasicBlock*>* dest, int& mask); //, int& dfnid);
 
     SSABuilder(Module mod);
     void computeDomTree();
     void computeDFTree();
+    void insertPhiNode();
     void renameVar(string name);
     void transform();
 };

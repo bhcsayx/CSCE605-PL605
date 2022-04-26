@@ -415,7 +415,7 @@ struct stmtAST* parseStmt(struct tokenStream stream) {
         }
         default: {
             if(start == endToken) {
-                printf("empty function\n");
+                // printf("empty function\n");
                 return NULL;
             }
             printf("stmt currently not supported...%d\n", start);

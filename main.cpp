@@ -56,10 +56,11 @@ int main(int argc, char *argv[]) {
     struct computationAST* root = parse(stream);
     
     Module mod = codegen(root);
-    dump2txt(mod);
     // printf("get var length: %d\n", mod.varNames.size());
     SSABuilder builder = SSABuilder(mod);
     builder.computeDomTree();
     builder.computeDFTree();
+    builder.insertPhiNode();
+    dump2txt(mod);
     exit(0);
 }
