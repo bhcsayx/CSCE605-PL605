@@ -58,9 +58,7 @@ int main(int argc, char *argv[]) {
     Module mod = codegen(root);
     // printf("get var length: %d\n", mod.varNames.size());
     SSABuilder builder = SSABuilder(mod);
-    builder.computeDomTree();
-    builder.computeDFTree();
-    builder.insertPhiNode();
+    builder.transform();
     dump2txt(mod);
     exit(0);
 }
