@@ -52,7 +52,7 @@ char* parseNumber(struct tokenStream stream) {
     const char* dest = (const char*) malloc(sizeof(int));
     strncpy(dest, (const char*)&(stream.numbers[numCursor]), sizeof(int));
     numCursor++;
-    printf("num: %d\n", *(int*)dest);
+    // printf("num: %d\n", *(int*)dest);
     return dest;
 }
 
@@ -109,7 +109,7 @@ struct factorAST* parseFactor(struct tokenStream stream) {
         case callToken: {
             res->type = 3;
             res->data = parseFacCall(stream);
-            printf("faccall: %d\n", res->data);
+            // printf("faccall: %d\n", res->data);
             break;
         }
 

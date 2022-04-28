@@ -20,6 +20,8 @@ SSABuilder::SSABuilder(Module mod) {
         }
         blocks[func.name] = tmp;
         dfs[func.name] = NULL;
+        funcNames.push_back(func.name);
+        // printf("SSA func: %s\n", func.name.c_str());
         // DomTrees[func.name] = NULL;
         // DFTrees[func.name] = NULL;
     }
@@ -94,15 +96,15 @@ void SSABuilder::computeDomTree() {
             }
         }
     
-        // map<BasicBlock*, vector<BasicBlock*>*>::iterator dom_iter = DomTrees[funcName].begin();
-        // while(dom_iter != DomTrees[funcName].end()) {
-        //     auto dor = dom_iter->first->index;
-        //     printf("dor: %d\n", (*(dom_iter->second)).size());
-        //     for(auto b: *(dom_iter->second)) {
-        //         printf("dom: %d -> %d\n", dor, b->index);
-        //     }
-        //     dom_iter++;
-        // }
+        map<BasicBlock*, vector<BasicBlock*>*>::iterator dom_iter = DomTrees[funcName].begin();
+        while(dom_iter != DomTrees[funcName].end()) {
+            auto dor = dom_iter->first->index;
+            printf("dor: %d\n", (*(dom_iter->second)).size());
+            for(auto b: *(dom_iter->second)) {
+                printf("dom: %d -> %d\n", dor, b->index);
+            }
+            dom_iter++;
+        }
         
         iter++;
     }
@@ -166,8 +168,8 @@ void SSABuilder::getBlocksofVar() {
     
     while(iter != blocks.end()) {
         auto funcName = iter->first;
-        printf("name: %s\n", funcName.c_str());
-        printf("blocks size:%d\n", iter->second->size());
+        // printf("name: %s\n", funcName.c_str());
+        // printf("blocks size:%d\n", iter->second->size());
         if(iter->second->size() == 0) {
             iter++;
             continue;
@@ -184,13 +186,13 @@ void SSABuilder::getBlocksofVar() {
                     blocksOf[funcName][ins->dest->name]->push_back(blk);
             }
         }
-        for(auto v: varNames) {
-            printf("blocksof %s: ", v.c_str());
-            for(auto b: *blocksOf[funcName][v]) {
-                printf("%d ", b->index);
-            }
-            printf("\n");
-        }
+        // for(auto v: varNames) {
+        //     printf("blocksof %s: ", v.c_str());
+        //     for(auto b: *blocksOf[funcName][v]) {
+        //         printf("%d ", b->index);
+        //     }
+        //     printf("\n");
+        // }
         iter++;
     }
 }
@@ -209,7 +211,7 @@ void SSABuilder::insertPhiNode() {
         for(auto blk: *blocks[funcName]) {
             for(auto ins: blk->instructions) {
                 if(ins->opcode == OpCode::MOVE) {
-                    printf("find assign to %s in blk %d\n", ins->op2->name.c_str(), blk->index);
+                    // printf("find assign to %s in blk %d\n", ins->op2->name.c_str(), blk->index);
                     if(ins->op2->name != "") {
                         auto dfts = DFTrees[funcName][blk];
                         for(auto df: *dfts) {
@@ -217,7 +219,7 @@ void SSABuilder::insertPhiNode() {
                                 phiNodes[funcName][df] = new vector<string>;
                             if(find(blocksOf[funcName][ins->op2->name]->begin(), blocksOf[funcName][ins->op2->name]->end(), df) != blocksOf[funcName][ins->op2->name]->end()) {
                                 if(find(phiNodes[funcName][df]->begin(), phiNodes[funcName][df]->end(), ins->op2->name) == phiNodes[funcName][df]->end()) {
-                                    printf("phi: %s in block %d\n", ins->op2->name.c_str(), df->index);
+                                    // printf("phi: %s in block %d\n", ins->op2->name.c_str(), df->index);
                                     phiNodes[funcName][df]->push_back(ins->op2->name);
                                     Value* v1 = new Value(); Value* v2 = new Value();
                                     Instruction *place = new Instruction();
@@ -240,7 +242,7 @@ void SSABuilder::insertPhiNode() {
 }
 
 void SSABuilder::renameVar(string name) {
-    map<string, vector<BasicBlock*>*>::iterator iter = dfs.begin();
+    map<string, vector<BasicBlock*>*>::iterator iter = dfs.begin(); int insCnt = 0;
     while(iter != dfs.end()) {
         auto funcName = iter->first;
         if(!(iter->second) || iter->second->size() == 0) {
@@ -249,9 +251,9 @@ void SSABuilder::renameVar(string name) {
         }
         idStack.clear(); int counter = 0; idStack.push_back(counter);
         for(auto blk: *(iter->second)){
-            if(find(blocksOf[funcName][name]->begin(), blocksOf[funcName][name]->end(), blk) != blocksOf[funcName][name]->end()) {
-                for(auto ins: blk->instructions) {
-                    if(ins->opcode != OpCode::PHI) {
+            for(auto ins: blk->instructions) {
+                if(find(blocksOf[funcName][name]->begin(), blocksOf[funcName][name]->end(), blk) != blocksOf[funcName][name]->end()) {
+                    if(ins->opcode != OpCode::PHI && ins->opcode != OpCode::MOVE) {
                         if(ins->op1->name == name) {
                             ins->op1->name.append("_");
                             ins->op1->name.append(to_string(idStack.back()));
@@ -260,6 +262,8 @@ void SSABuilder::renameVar(string name) {
                             ins->op2->name.append("_");
                             ins->op2->name.append(to_string(idStack.back()));
                         }
+                        // ins->dest->name = "%";
+                        // ins->dest->name.append(to_string(insCnt));
                     }
                     if(ins->opcode == OpCode::MOVE) {
                         if(ins->op2->name == name) {
@@ -267,6 +271,8 @@ void SSABuilder::renameVar(string name) {
                             ins->op2->name.append("_");
                             ins->op2->name.append(to_string(idStack.back()));
                         }
+                        // ins->dest->name = "%";
+                        // ins->dest->name.append(to_string(insCnt));
                     }
                     if(ins->opcode == OpCode::PHI) {
                         if(ins->dest->name == name) {
@@ -280,17 +286,18 @@ void SSABuilder::renameVar(string name) {
                         for(auto suc_ins: suc_block->instructions) {
                             if(suc_ins->opcode == OpCode::PHI) {
                                 if(suc_ins->op1->name == name) {
-                                    ins->op1->name.append("-");
-                                    ins->op1->name.append(to_string(idStack.back()));
+                                    suc_ins->op1->name.append("_");
+                                    suc_ins->op1->name.append(to_string(idStack.back()));
                                 }
-                                else {
-                                    ins->op2->name.append("_");
-                                    ins->op2->name.append(to_string(idStack.back()));
+                                else if(suc_ins->op2->name == name){
+                                    suc_ins->op2->name.append("_");
+                                    suc_ins->op2->name.append(to_string(idStack.back()));
                                 }
                             }
                         }
                     }
                 }
+                insCnt++;
             }
         }
         iter++;

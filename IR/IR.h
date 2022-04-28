@@ -70,8 +70,8 @@ public:
 
     BasicBlock();
     ~BasicBlock();
-    Value* addInstruction(Value* op1, Value* op2, enum Token op, Global& glob, Instruction* ins);
-    Value* addCallInstruction(string name, vector<Value*> args, Value* func, Global& glob, Instruction* ins);
+    Value* addInstruction(Value* op1, Value* op2, enum Token op, Global& glob, Instruction* ins, int& ins_index);
+    Value* addCallInstruction(string name, vector<Value*> args, Value* func, Global& glob, Instruction* ins, int& ins_index);
 };
 
 class Function {

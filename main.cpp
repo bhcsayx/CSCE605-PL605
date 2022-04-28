@@ -41,17 +41,17 @@ int main(int argc, char *argv[]) {
 
     struct tokenStream stream = scan(raw_input);
 
-    for(int i=0; i<stream.token_len; i++){
-        printf("%d ", stream.tokens[i]);
-    }
-    printf("\n");
-    for(int i=0; i<stream.int_len; i++){
-        printf("%d ", stream.numbers[i]);
-    }
-    printf("\n");
-    for(int i=0; i<stream.id_len; i++){
-        printf("%s ", stream.ids[i]);
-    }
+    // for(int i=0; i<stream.token_len; i++){
+    //     printf("%d ", stream.tokens[i]);
+    // }
+    // printf("\n");
+    // for(int i=0; i<stream.int_len; i++){
+    //     printf("%d ", stream.numbers[i]);
+    // }
+    // printf("\n");
+    // for(int i=0; i<stream.id_len; i++){
+    //     printf("%s ", stream.ids[i]);
+    // }
 
     struct computationAST* root = parse(stream);
     
@@ -59,6 +59,8 @@ int main(int argc, char *argv[]) {
     // printf("get var length: %d\n", mod.varNames.size());
     SSABuilder builder = SSABuilder(mod);
     builder.transform();
+    // dump2txt(mod);
+    dump2dot(builder, "./plain.dot");
     dump2txt(mod);
     exit(0);
 }

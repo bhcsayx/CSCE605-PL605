@@ -4,7 +4,10 @@
 #include <stdlib.h>
 
 #include "../IR/IR.h"
+#include "../IR/SSA.h"
+
 #include "graphviz.h"
+#include "Dot.h"
 
 using namespace std;
 
@@ -19,10 +22,11 @@ string val2txt(Value* val) {
             return res;
         }
         case Type::insRes: {
-            string res("%");
-            auto cstr = std::to_string(val->index);
-            res.append(cstr.c_str());
-            // string res = val->name;
+            // string res("%");
+            // auto cstr = std::to_string(val->index);
+            // res.append(cstr.c_str());
+            printf("val name: %s\n", val->name.c_str());
+            string res = val->name;
             return res;
         }
         case Type::constVal: {
@@ -145,6 +149,11 @@ vector<string> dump2txt(Module mod) {
             res.push_back(name);
             for (auto ins: blk->instructions) {
                 string ins_str("");
+                // printf("dest name: %s\n", ins->dest->name.c_str());
+                if(ins->opcode != OpCode::MOVE) {
+                    ins_str.append(ins->dest->name); 
+                    ins_str.append(" = ");
+                }
                 ins_str.append(op2txt(ins->opcode).c_str());
                 ins_str.append(" ");
                 if(ins->opcode == OpCode::CALL) {
@@ -175,4 +184,42 @@ vector<string> dump2txt(Module mod) {
         std::cout << s << endl;
     }
     return res;
+}
+
+void dump2dot(SSABuilder builder, string name) {
+    Dot dot;
+    auto blks_iter = builder.blocks.begin();
+    // while(blks_iter != builder.blocks.end()) {
+    //     auto funcName = blks_iter->first;
+        // if(blks_iter->second->size() == 0) {
+        //     blks_iter++; continue;
+        // }
+    for(auto funcName: builder.funcNames) {
+        printf("funcname: %s\n", funcName.c_str());
+        // for(auto blk: *(blks_iter->second)) {
+        for(auto blk: *(builder.blocks[funcName])) {
+            string name = funcName;
+            name.append("_BB"); name.append(to_string(blk->index));
+            dot.addNode(name);
+            for(auto ins: blk->instructions)
+                dot.addInstruction(name, ins);
+            if(blk->successors.size() > 0) {
+                if(blk->successors.size() == 2) {
+                    string br1 = funcName;
+                    br1.append("_BB"); br1.append(to_string(blk->successors[0]));
+                    dot.addCFGEdge(name, br1, "branch");
+                    string br2 = funcName;
+                    br2.append("_BB"); br2.append(to_string(blk->successors[1]));
+                    dot.addCFGEdge(name, br2, "fall-through");
+                }
+                else {
+                    string br1 = funcName;
+                    br1.append("_BB"); br1.append(to_string(blk->successors[0]));
+                    dot.addCFGEdge(name, br1, "fall-through");
+                }
+            }
+        }
+        blks_iter++;
+    }
+    dot.dump(name);
 }

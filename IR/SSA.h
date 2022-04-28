@@ -18,6 +18,7 @@ class SSABuilder {
 public:
 
     vector<string> varNames;
+    vector<string> funcNames;
     map<string, vector<BasicBlock*>*> blocks;
     map<string, vector<BasicBlock*>*> dfs;
     map<string, map<BasicBlock*, vector<BasicBlock*>*>> DomTrees;
