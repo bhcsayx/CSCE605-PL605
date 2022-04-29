@@ -32,7 +32,7 @@ BasicBlock::~BasicBlock() {
 
 }
 
-Value* BasicBlock::addInstruction(Value* op1, Value* op2, Token op, Global& glob, Instruction* place, int& ins_index) {
+Value* BasicBlock::addInstruction(Value* op1, Value* op2, Token op, Instruction* place, int& ins_index) {
     // struct Instruction place;
     place->op1 = op1;
     place->op2 = op2;
@@ -111,20 +111,21 @@ Value* BasicBlock::addInstruction(Value* op1, Value* op2, Token op, Global& glob
     };
     // place->dest = ((Module*)(((Function*)(this->func))->module))->addValue();
     place->dest = new Value();
-    glob.addValue(place->dest);
-    if(op != assignToken) {
-        place->dest->name = "%";
-        place->dest->name.append(to_string(ins_index++));
-    }
-    else {
-        place->dest->name = op2->name;
-        ins_index++;
-    }
+    // glob.addValue(place->dest);
+    // if(op != assignToken) {
+    place->dest->name = "%";
+    place->dest->name.append(to_string(ins_index++));
+    place->dest->type = Type::insRes;
+    // }
+    // else {
+    //     place->dest->name = op2->name;
+    //     ins_index++;
+    // }
     instructions.push_back(place);
     return place->dest;
 }
 
-Value* BasicBlock::addCallInstruction(string name, vector<Value*> args, Value* func, Global& glob, Instruction* place, int& ins_index) {
+Value* BasicBlock::addCallInstruction(string name, vector<Value*> args, Value* func, Instruction* place, int& ins_index) {
     // struct Instruction place;
     func->name = name;
     func->type = Type::def;
@@ -135,9 +136,10 @@ Value* BasicBlock::addCallInstruction(string name, vector<Value*> args, Value* f
         place->callArgs.push_back(args[i]);
     // place->dest = ((Module*)(((Function*)(this->func))->module))->addValue();
     place->dest = new Value();
-    glob.addValue(place->dest);
+    // glob.addValue(place->dest);
     place->dest->name = "%";
     place->dest->name.append(to_string(ins_index++));
+    place->dest->type = Type::insRes;
     instructions.push_back(place);
     return place->dest;
 }

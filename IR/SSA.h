@@ -26,9 +26,11 @@ public:
 
     map<string, map<string, vector<BasicBlock*>*>>blocksOf;
     map<string, map<BasicBlock*, vector<string>*>> phiNodes;
-    vector<int> idStack;
+    map<string, int> counter;
+    map<string, vector<int>*> stack;
 
-    void SSABuilder::recurDFS(vector<BasicBlock*>* blocks, BasicBlock* cur, vector<BasicBlock*>* dest, int& mask); //, int& dfnid);
+    void renameVarinBlk(string funcName, string name, BasicBlock* blk);
+    void recurDFS(vector<BasicBlock*>* blocks, BasicBlock* cur, vector<BasicBlock*>* dest, int& mask); //, int& dfnid);
 
     SSABuilder(Module mod);
     void computeDomTree();

@@ -29,6 +29,9 @@ SSABuilder::SSABuilder(Module mod) {
     for(auto name: mod.varNames) {
         // printf("new name: %s\n", name.c_str());
         varNames.push_back(name);
+        stack[name] = new vector<int>;
+        stack[name]->push_back(0);
+        counter[name] = 0;
     }
     // for(auto n: varNames) {
     //     printf("new name: %s\n", n.c_str());
@@ -168,7 +171,7 @@ void SSABuilder::getBlocksofVar() {
     
     while(iter != blocks.end()) {
         auto funcName = iter->first;
-        // printf("name: %s\n", funcName.c_str());
+        printf("func name: %s\n", funcName.c_str());
         // printf("blocks size:%d\n", iter->second->size());
         if(iter->second->size() == 0) {
             iter++;
@@ -200,6 +203,46 @@ void SSABuilder::getBlocksofVar() {
 void SSABuilder::insertPhiNode() {
     map<string, vector<BasicBlock*>*>::iterator iter = blocks.begin();
     
+    // while(iter != blocks.end()) {
+    //     auto funcName = iter->first;
+    //     // printf("name: %s\n", funcName.c_str());
+    //     // printf("blocks size:%d\n", iter->second->size());
+    //     if(iter->second->size() == 0) {
+    //         iter++;
+    //         continue;
+    //     }
+    //     for(auto blk: *blocks[funcName]) {
+    //         for(auto ins: blk->instructions) {
+    //             if(ins->opcode == OpCode::MOVE) {
+    //                 // printf("find assign to %s in blk %d\n", ins->op2->name.c_str(), blk->index);
+    //                 if(ins->op2->name != "") {
+    //                     auto dfts = DFTrees[funcName][blk];
+    //                     for(auto df: *dfts) {
+    //                         if(!phiNodes[funcName][df])
+    //                             phiNodes[funcName][df] = new vector<string>;
+    //                         if(find(blocksOf[funcName][ins->op2->name]->begin(), blocksOf[funcName][ins->op2->name]->end(), df) != blocksOf[funcName][ins->op2->name]->end()) {
+    //                             if(find(phiNodes[funcName][df]->begin(), phiNodes[funcName][df]->end(), ins->op2->name) == phiNodes[funcName][df]->end()) {
+    //                                 printf("phi: %s in block %d\n", ins->op2->name.c_str(), df->index);
+    //                                 phiNodes[funcName][df]->push_back(ins->op2->name);
+    //                                 Value* v1 = new Value(); Value* v2 = new Value();
+    //                                 Instruction *place = new Instruction();
+    //                                 v1->name = ins->op2->name; v2->name = ins->op2->name;
+    //                                 place->op1 = v1; place->op2 = v2;
+    //                                 place->opcode = OpCode::PHI;
+    //                                 place->dest = new Value();
+    //                                 glob.addValue(place->dest);
+    //                                 place->dest->name = ins->op2->name;
+    //                                 df->instructions.insert(df->instructions.begin(), place);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     iter++;
+    // }
+
     while(iter != blocks.end()) {
         auto funcName = iter->first;
         // printf("name: %s\n", funcName.c_str());
@@ -208,98 +251,173 @@ void SSABuilder::insertPhiNode() {
             iter++;
             continue;
         }
-        for(auto blk: *blocks[funcName]) {
-            for(auto ins: blk->instructions) {
-                if(ins->opcode == OpCode::MOVE) {
-                    // printf("find assign to %s in blk %d\n", ins->op2->name.c_str(), blk->index);
-                    if(ins->op2->name != "") {
-                        auto dfts = DFTrees[funcName][blk];
-                        for(auto df: *dfts) {
-                            if(!phiNodes[funcName][df])
-                                phiNodes[funcName][df] = new vector<string>;
-                            if(find(blocksOf[funcName][ins->op2->name]->begin(), blocksOf[funcName][ins->op2->name]->end(), df) != blocksOf[funcName][ins->op2->name]->end()) {
-                                if(find(phiNodes[funcName][df]->begin(), phiNodes[funcName][df]->end(), ins->op2->name) == phiNodes[funcName][df]->end()) {
-                                    // printf("phi: %s in block %d\n", ins->op2->name.c_str(), df->index);
-                                    phiNodes[funcName][df]->push_back(ins->op2->name);
-                                    Value* v1 = new Value(); Value* v2 = new Value();
-                                    Instruction *place = new Instruction();
-                                    v1->name = ins->op2->name; v2->name = ins->op2->name;
-                                    place->op1 = v1; place->op2 = v2;
-                                    place->opcode = OpCode::PHI;
-                                    place->dest = new Value();
-                                    glob.addValue(place->dest);
-                                    place->dest->name = ins->op2->name;
-                                    df->instructions.insert(df->instructions.begin(), place);
-                                }
-                            }
+        for(auto v: varNames) {
+            vector<BasicBlock*> hasAlready, everOnWorkList, workList;
+            hasAlready.clear(); everOnWorkList.clear(); workList.clear();
+            for(auto blk: *(blocksOf[funcName][v])) {
+                everOnWorkList.push_back(blk);
+                workList.push_back(blk);
+            }
+            while(workList.size() > 0) {
+                // printf("worklist size: %d\n", workList.size());
+                auto cur = workList.back();
+                workList.pop_back();
+                for(auto df: *(DFTrees[funcName][cur])) {
+                    if(find(hasAlready.begin(), hasAlready.end(), df) == hasAlready.end()) {
+                        Instruction* place = new Instruction();
+                        Value* v1 = new Value(); Value* v2 = new Value(); Value* dest = new Value();
+                        dest->name = v1->name = v2->name = v; place->opcode = OpCode::PHI;
+                        place->op1 = v1; place->op2 = v2; place->dest = dest;
+                        df->instructions.insert(df->instructions.begin(), place);
+                        hasAlready.push_back(df);
+                        if(find(everOnWorkList.begin(), everOnWorkList.end(), df) == everOnWorkList.end()) {
+                            everOnWorkList.push_back(df);
+                            workList.push_back(df);
                         }
                     }
                 }
             }
         }
         iter++;
+    }    
+}
+
+void SSABuilder::renameVarinBlk(string funcName, string name, BasicBlock* blk) {
+    for(auto ins: blk->instructions) {
+        if(ins->opcode == OpCode::PHI) {
+            if(ins->dest->name == name) {
+                counter[name]++;
+                ins->dest->name.append("_");
+                ins->dest->name.append(to_string(counter[name]));
+                stack[name]->push_back(counter[name]);
+            }
+        }
+        else if(ins->opcode == OpCode::MOVE) {
+            if(ins->op2->name == name) {
+                ins->op2->name.append("_");
+                ins->op2->name.append(to_string(counter[name]));
+                counter[name]++;
+                stack[name]->push_back(counter[name]);
+            }
+        }
+        else {
+            if(ins->op1->name == name) {
+                ins->op1->name = name;
+                ins->op1->name.append("_");
+                ins->op1->name.append(to_string(stack[name]->back()));
+            }
+            if(ins->op2->name == name) {
+                ins->op2->name = name;
+                ins->op2->name.append("_");
+                printf("%s\n", ins->op2->name.c_str());
+                ins->op2->name.append(to_string(stack[name]->back()));
+            }
+        }
+    }
+
+    for(auto suc_idx: blk->successors) {
+        auto suc = (*blocks[funcName])[suc_idx];
+        for(auto suc_ins: suc->instructions) {
+            if(suc_ins->op1->name == name) {
+                suc_ins->op1->name.append("_");
+                suc_ins->op1->name.append(to_string((*(stack[name])).back()));
+            }
+            else if(suc_ins->op2->name == name) {
+                suc_ins->op2->name.append("_");
+                suc_ins->op2->name.append(to_string((*(stack[name])).back()));
+            }
+        }
+    }
+
+    for(auto block: *blocks[funcName]) {
+        if(DomTrees[funcName][block] == NULL)
+            continue;
+        if(find(DomTrees[funcName][block]->begin(), DomTrees[funcName][block]->end(), blk) != DomTrees[funcName][block]->end())
+            renameVarinBlk(funcName, name, block);
+    }
+
+    for(auto ins: blk->instructions) {
+        if(ins->opcode == OpCode::PHI || ins->opcode == OpCode::MOVE) {
+            if(ins->dest->name == name) {
+                stack[name]->pop_back();
+            }
+        }
     }
 }
 
 void SSABuilder::renameVar(string name) {
-    map<string, vector<BasicBlock*>*>::iterator iter = dfs.begin(); int insCnt = 0;
-    while(iter != dfs.end()) {
+    // map<string, vector<BasicBlock*>*>::iterator iter = dfs.begin(); int insCnt = 0;
+    // while(iter != dfs.end()) {
+    //     auto funcName = iter->first;
+    //     if(!(iter->second) || iter->second->size() == 0) {
+    //         iter++;
+    //         continue;
+    //     }
+    //     idStack.clear(); int counter = 0; idStack.push_back(counter);
+    //     for(auto blk: *(iter->second)){
+    //         for(auto ins: blk->instructions) {
+    //             if(find(blocksOf[funcName][name]->begin(), blocksOf[funcName][name]->end(), blk) != blocksOf[funcName][name]->end()) {
+    //                 if(ins->opcode != OpCode::PHI && ins->opcode != OpCode::MOVE) {
+    //                     if(ins->op1->name == name) {
+    //                         ins->op1->name.append("_");
+    //                         ins->op1->name.append(to_string(idStack.back()));
+    //                     }
+    //                     if(ins->op2->name == name) {
+    //                         ins->op2->name.append("_");
+    //                         ins->op2->name.append(to_string(idStack.back()));
+    //                     }
+    //                     // ins->dest->name = "%";
+    //                     // ins->dest->name.append(to_string(insCnt));
+    //                 }
+    //                 if(ins->opcode == OpCode::MOVE) {
+    //                     if(ins->op2->name == name) {
+    //                         counter++; idStack.push_back(counter);
+    //                         ins->op2->name.append("_");
+    //                         ins->op2->name.append(to_string(idStack.back()));
+    //                     }
+    //                     // ins->dest->name = "%";
+    //                     // ins->dest->name.append(to_string(insCnt));
+    //                 }
+    //                 if(ins->opcode == OpCode::PHI) {
+    //                     if(ins->dest->name == name) {
+    //                         counter++; idStack.push_back(counter);
+    //                         ins->dest->name.append("_");
+    //                         ins->dest->name.append(to_string(idStack.back()));
+    //                     }
+    //                 }
+    //                 for(auto suc: blk->successors) {
+    //                     auto suc_block = (*blocks[funcName])[suc];
+    //                     for(auto suc_ins: suc_block->instructions) {
+    //                         if(suc_ins->opcode == OpCode::PHI) {
+    //                             if(suc_ins->op1->name == name) {
+    //                                 suc_ins->op1->name.append("_");
+    //                                 suc_ins->op1->name.append(to_string(idStack.back()));
+    //                             }
+    //                             else if(suc_ins->op2->name == name){
+    //                                 suc_ins->op2->name.append("_");
+    //                                 suc_ins->op2->name.append(to_string(idStack.back()));
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //             insCnt++;
+    //         }
+    //     }
+    //     iter++;
+    // }
+    map<string, vector<BasicBlock*>*>::iterator iter = blocks.begin();
+    while(iter != blocks.end()) {
         auto funcName = iter->first;
-        if(!(iter->second) || iter->second->size() == 0) {
+        // printf("name: %s\n", funcName.c_str());
+        // printf("blocks size:%d\n", iter->second->size());
+        if(iter->second->size() == 0) {
             iter++;
             continue;
         }
-        idStack.clear(); int counter = 0; idStack.push_back(counter);
-        for(auto blk: *(iter->second)){
-            for(auto ins: blk->instructions) {
-                if(find(blocksOf[funcName][name]->begin(), blocksOf[funcName][name]->end(), blk) != blocksOf[funcName][name]->end()) {
-                    if(ins->opcode != OpCode::PHI && ins->opcode != OpCode::MOVE) {
-                        if(ins->op1->name == name) {
-                            ins->op1->name.append("_");
-                            ins->op1->name.append(to_string(idStack.back()));
-                        }
-                        if(ins->op2->name == name) {
-                            ins->op2->name.append("_");
-                            ins->op2->name.append(to_string(idStack.back()));
-                        }
-                        // ins->dest->name = "%";
-                        // ins->dest->name.append(to_string(insCnt));
-                    }
-                    if(ins->opcode == OpCode::MOVE) {
-                        if(ins->op2->name == name) {
-                            counter++; idStack.push_back(counter);
-                            ins->op2->name.append("_");
-                            ins->op2->name.append(to_string(idStack.back()));
-                        }
-                        // ins->dest->name = "%";
-                        // ins->dest->name.append(to_string(insCnt));
-                    }
-                    if(ins->opcode == OpCode::PHI) {
-                        if(ins->dest->name == name) {
-                            counter++; idStack.push_back(counter);
-                            ins->dest->name.append("_");
-                            ins->dest->name.append(to_string(idStack.back()));
-                        }
-                    }
-                    for(auto suc: blk->successors) {
-                        auto suc_block = (*blocks[funcName])[suc];
-                        for(auto suc_ins: suc_block->instructions) {
-                            if(suc_ins->opcode == OpCode::PHI) {
-                                if(suc_ins->op1->name == name) {
-                                    suc_ins->op1->name.append("_");
-                                    suc_ins->op1->name.append(to_string(idStack.back()));
-                                }
-                                else if(suc_ins->op2->name == name){
-                                    suc_ins->op2->name.append("_");
-                                    suc_ins->op2->name.append(to_string(idStack.back()));
-                                }
-                            }
-                        }
-                    }
-                }
-                insCnt++;
-            }
-        }
+        counter[name] = 0;
+        stack[name]->clear();
+        renameVarinBlk(funcName, name, (*(iter->second))[0]);
         iter++;
     }
 }

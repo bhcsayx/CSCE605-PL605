@@ -57,10 +57,11 @@ int main(int argc, char *argv[]) {
     
     Module mod = codegen(root);
     // printf("get var length: %d\n", mod.varNames.size());
+    dump2txt(mod);
     SSABuilder builder = SSABuilder(mod);
+    dump2dot(builder, "./plain0.dot");
     builder.transform();
     // dump2txt(mod);
     dump2dot(builder, "./plain.dot");
-    dump2txt(mod);
     exit(0);
 }

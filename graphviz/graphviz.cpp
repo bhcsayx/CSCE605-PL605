@@ -25,7 +25,7 @@ string val2txt(Value* val) {
             // string res("%");
             // auto cstr = std::to_string(val->index);
             // res.append(cstr.c_str());
-            printf("val name: %s\n", val->name.c_str());
+            // printf("val name: %s\n", val->name.c_str());
             string res = val->name;
             return res;
         }
@@ -139,6 +139,7 @@ vector<string> dump2txt(Module mod) {
     string tabs("\n\t");
     for(auto func: mod.funcs) {
         res.push_back(func.name);
+        printf("func: %s\n", func.name.c_str());
         int blkIdx = 0;
         for(auto blk: func.blocks) {
             res.push_back(tabs);
@@ -148,6 +149,7 @@ vector<string> dump2txt(Module mod) {
             // printf("blk length: %d\n", blk.instructions.size());
             res.push_back(name);
             for (auto ins: blk->instructions) {
+                // printf("instruction: %d\n", ins->opcode);
                 string ins_str("");
                 // printf("dest name: %s\n", ins->dest->name.c_str());
                 if(ins->opcode != OpCode::MOVE) {
@@ -188,14 +190,14 @@ vector<string> dump2txt(Module mod) {
 
 void dump2dot(SSABuilder builder, string name) {
     Dot dot;
-    auto blks_iter = builder.blocks.begin();
+    // auto blks_iter = builder.blocks.begin();
     // while(blks_iter != builder.blocks.end()) {
     //     auto funcName = blks_iter->first;
         // if(blks_iter->second->size() == 0) {
         //     blks_iter++; continue;
         // }
     for(auto funcName: builder.funcNames) {
-        printf("funcname: %s\n", funcName.c_str());
+        // printf("funcname: %s\n", funcName.c_str());
         // for(auto blk: *(blks_iter->second)) {
         for(auto blk: *(builder.blocks[funcName])) {
             string name = funcName;
@@ -219,7 +221,31 @@ void dump2dot(SSABuilder builder, string name) {
                 }
             }
         }
-        blks_iter++;
+
+        for(auto dom: builder.DomTrees[funcName]) {
+            string lname = funcName;
+            lname.append("_BB"); lname.append(to_string(dom.first->index));
+            if(dom.second == NULL)
+                continue;
+            for(auto r: *(dom.second)) {
+                string rname = funcName;
+                rname.append("_BB"); rname.append(to_string(r->index));
+                dot.addDomEdge(lname, rname);
+            }
+        }
+
+        for(auto df: builder.DFTrees[funcName]) {
+            string lname = funcName;
+            lname.append("_BB"); lname.append(to_string(df.first->index));
+            if(df.second == NULL)
+                continue;
+            for(auto r: *(df.second)) {
+                string rname = funcName;
+                rname.append("_BB"); rname.append(to_string(r->index));
+                dot.addDFEdge(lname, rname);
+            }
+        }
+        // blks_iter++;
     }
     dot.dump(name);
 }

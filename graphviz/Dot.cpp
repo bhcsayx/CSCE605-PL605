@@ -133,8 +133,10 @@ void Dot::addInstruction(string name, Instruction* ins) {
                 res.append("#");
                 res.append(to_string(ins->op1->value));
             }
-            else
+            else {
                 res.append(ins->op1->name.c_str());
+            }
+                
             res.append(" ");
             if(ins->op2->type == Type::constVal) {
                 res.append("#");
@@ -155,7 +157,6 @@ void Dot::addInstruction(string name, Instruction* ins) {
             //     res.append(to_string(ins->op1->index));
             // }
             else {
-                printf("dump str: %s\n", ins->op1->name.c_str());
                 res.append(ins->op1->name.c_str());
             }
             res.append(" ");
@@ -181,37 +182,38 @@ void Dot::addInstruction(string name, Instruction* ins) {
         }
         case OpCode::BEQ: {
             res.append("BEQ [");
-            res.append(to_string(ins->op1->value));
+            res.append(to_string(ins->op2->value));
             res.append("]");
             break;
         }
         case OpCode::BNE: {
             res.append("BNE [");
-            res.append(to_string(ins->op1->value));
+            res.append(to_string(ins->op2->value));
             res.append("]");
             break;
         }
         case OpCode::BLT: {
             res.append("BLT [");
-            res.append(to_string(ins->op1->value));
+            // res.append(ins->op2->name);
+            res.append(to_string(ins->op2->value));
             res.append("]");
             break;
         }
         case OpCode::BGT: {
             res.append("BGT [");
-            res.append(to_string(ins->op1->value));
+            res.append(to_string(ins->op2->value));
             res.append("]");
             break;
         }
         case OpCode::BLE: {
             res.append("BLE [");
-            res.append(to_string(ins->op1->value));
+            res.append(to_string(ins->op2->value));
             res.append("]");
             break;
         }
         case OpCode::BGE: {
             res.append("BGE [");
-            res.append(to_string(ins->op1->value));
+            res.append(to_string(ins->op2->value));
             res.append("]");
             break;
         }
@@ -221,7 +223,7 @@ void Dot::addInstruction(string name, Instruction* ins) {
         }
         case OpCode::WRITE: {
             res.append("WRITE ");
-            res.append(to_string(ins->op1->value));
+            res.append(ins->op1->name);
             break;
         }
         case OpCode::WRITENL: {
@@ -290,6 +292,20 @@ void Dot::dump(string filename) {
         if(e.type == "CFG") {
             outfile << e.start << ":s -> ";
             outfile << e.end << ":n [label=\"";
+            outfile << e.label << "\"];\n";
+        }
+        if(e.type == "Dom") {
+            outfile << e.start << ":b -> ";
+            outfile << e.end << ":b [color=";
+            outfile << e.color << ", style=";
+            outfile << e.style << ", label=\"";
+            outfile << e.label << "\"];\n";
+        }
+        if(e.type == "DF") {
+            outfile << e.start << ":b -> ";
+            outfile << e.end << ":b [color=";
+            outfile << e.color << ", style=";
+            outfile << e.style << ", label=\"";
             outfile << e.label << "\"];\n";
         }
     }
