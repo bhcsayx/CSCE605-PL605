@@ -49,8 +49,10 @@ void Dot::addInstruction(string name, Instruction* ins) {
     Node node = nodes[name];
     string res;
 
-    res.append(to_string(counter++));
-    res.append(": ");
+    if(ins->opcode != OpCode::PHI) {
+        res.append(to_string(counter++));
+        res.append(": ");
+    }
     // res.append(ins->dest->name.substr(1, ins->dest->name.length()));
     // res.append(": ");
     
@@ -164,7 +166,8 @@ void Dot::addInstruction(string name, Instruction* ins) {
             break;
         }
         case OpCode::PHI: {
-            res.append("PHI ");
+            res.append(ins->dest->name.c_str());
+            res.append(" = PHI ");
             res.append(ins->op1->name.c_str());
             res.append(" ");
             res.append(ins->op2->name.c_str());

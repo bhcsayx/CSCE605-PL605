@@ -116,7 +116,9 @@ Value* codegen(struct assignAST* assign, BasicBlock* block) {
             Value* one = constValue(1);
             Instruction* tmp_ins = new Instruction();
             Instruction* ins = new Instruction();
-            Value* tmp = block->addInstruction(lhs, one, Token::plusToken, tmp_ins, valIndex);
+            Value* tmp_lhs = new Value(); tmp_lhs->index = lhs->index; tmp_lhs->name = lhs->name; tmp_lhs->type = lhs->type;
+            Value* tmp = block->addInstruction(tmp_lhs, one, Token::plusToken, tmp_ins, valIndex);
+            // Value* tmp2 = new Value(); tmp2->index = tmp->index; tmp2->name = tmp->name; tmp2->type = tmp->type;
             Value* res = block->addInstruction(tmp, lhs, Token::assignToken, ins, valIndex);
             glob.symbolTable.insertSymbol(lhs->name, tmp->index);
             return res;
@@ -126,7 +128,8 @@ Value* codegen(struct assignAST* assign, BasicBlock* block) {
             Value* one = constValue(1);
             Instruction* tmp_ins = new Instruction();
             Instruction* ins = new Instruction();
-            Value* tmp = block->addInstruction(lhs, one, Token::minusToken, tmp_ins, valIndex);
+            Value* tmp_lhs = new Value(); tmp_lhs->index = lhs->index; tmp_lhs->name = lhs->name; tmp_lhs->type = lhs->type;
+            Value* tmp = block->addInstruction(tmp_lhs, one, Token::minusToken, tmp_ins, valIndex);
             Value* res = block->addInstruction(tmp, lhs, Token::assignToken, ins, valIndex);
             glob.symbolTable.insertSymbol(lhs->name, tmp->index);
             return res;
@@ -136,7 +139,8 @@ Value* codegen(struct assignAST* assign, BasicBlock* block) {
             Value* rhs = codegen(assign->rhs, block);
             Instruction* tmp_ins = new Instruction();
             Instruction* ins = new Instruction();
-            Value* tmp = block->addInstruction(lhs, rhs, Token::plusToken, tmp_ins, valIndex);
+            Value* tmp_lhs = new Value(); tmp_lhs->index = lhs->index; tmp_lhs->name = lhs->name; tmp_lhs->type = lhs->type;
+            Value* tmp = block->addInstruction(tmp_lhs, rhs, Token::plusToken, tmp_ins, valIndex);
             Value* res = block->addInstruction(tmp, lhs, Token::assignToken, ins, valIndex);
             glob.symbolTable.insertSymbol(lhs->name, tmp->index);
             return res;
@@ -146,7 +150,8 @@ Value* codegen(struct assignAST* assign, BasicBlock* block) {
             Value* rhs = codegen(assign->rhs, block);
             Instruction* tmp_ins = new Instruction();
             Instruction* ins = new Instruction();
-            Value* tmp = block->addInstruction(lhs, rhs, Token::minusToken, tmp_ins, valIndex);
+            Value* tmp_lhs = new Value(); tmp_lhs->index = lhs->index; tmp_lhs->name = lhs->name; tmp_lhs->type = lhs->type;
+            Value* tmp = block->addInstruction(tmp_lhs, rhs, Token::minusToken, tmp_ins, valIndex);
             Value* res = block->addInstruction(tmp, lhs, Token::assignToken, ins, valIndex);
             glob.symbolTable.insertSymbol(lhs->name, tmp->index);
             return res;
@@ -156,7 +161,8 @@ Value* codegen(struct assignAST* assign, BasicBlock* block) {
             Value* rhs = codegen(assign->rhs, block);
             Instruction* tmp_ins = new Instruction();
             Instruction* ins = new Instruction();
-            Value* tmp = block->addInstruction(lhs, rhs, Token::timesToken, tmp_ins, valIndex);
+            Value* tmp_lhs = new Value(); tmp_lhs->index = lhs->index; tmp_lhs->name = lhs->name; tmp_lhs->type = lhs->type;
+            Value* tmp = block->addInstruction(tmp_lhs, rhs, Token::timesToken, tmp_ins, valIndex);
             Value* res = block->addInstruction(tmp, lhs, Token::assignToken, ins, valIndex);
             glob.symbolTable.insertSymbol(lhs->name, rhs->index);
             return res;
@@ -166,7 +172,8 @@ Value* codegen(struct assignAST* assign, BasicBlock* block) {
             Value* rhs = codegen(assign->rhs, block);
             Instruction* tmp_ins = new Instruction();
             Instruction* ins = new Instruction();
-            Value* tmp = block->addInstruction(lhs, rhs, Token::divToken, tmp_ins, valIndex);
+            Value* tmp_lhs = new Value(); tmp_lhs->index = lhs->index; tmp_lhs->name = lhs->name; tmp_lhs->type = lhs->type;
+            Value* tmp = block->addInstruction(tmp_lhs, rhs, Token::divToken, tmp_ins, valIndex);
             Value* res = block->addInstruction(tmp, lhs, Token::assignToken, ins, valIndex);
             glob.symbolTable.insertSymbol(lhs->name, rhs->index);
             return res;

@@ -181,12 +181,14 @@ void SSABuilder::getBlocksofVar() {
             blocksOf[funcName][v] = new vector<BasicBlock*>;
         for(auto blk: *blocks[funcName]) {
             for(auto ins : blk->instructions) {
-                if(ins->op1->name != "" && find(varNames.begin(), varNames.end(), ins->op1->name) != varNames.end() && find(blocksOf[funcName][ins->op1->name]->begin(), blocksOf[funcName][ins->op1->name]->end(), blk) == blocksOf[funcName][ins->op1->name]->end())
-                    blocksOf[funcName][ins->op1->name]->push_back(blk);
+                if(ins->opcode != OpCode::MOVE)
+                    continue;
+                // if(ins->op1->name != "" && find(varNames.begin(), varNames.end(), ins->op1->name) != varNames.end() && find(blocksOf[funcName][ins->op1->name]->begin(), blocksOf[funcName][ins->op1->name]->end(), blk) == blocksOf[funcName][ins->op1->name]->end())
+                //     blocksOf[funcName][ins->op1->name]->push_back(blk);
                 if(ins->op2->name != "" && find(varNames.begin(), varNames.end(), ins->op2->name) != varNames.end() && find(blocksOf[funcName][ins->op2->name]->begin(), blocksOf[funcName][ins->op2->name]->end(), blk) == blocksOf[funcName][ins->op2->name]->end())
                     blocksOf[funcName][ins->op2->name]->push_back(blk);
-                if(ins->dest->name != "" && find(varNames.begin(), varNames.end(), ins->dest->name) != varNames.end() && find(blocksOf[funcName][ins->dest->name]->begin(), blocksOf[funcName][ins->dest->name]->end(), blk) == blocksOf[funcName][ins->dest->name]->end())
-                    blocksOf[funcName][ins->dest->name]->push_back(blk);
+                // if(ins->dest->name != "" && find(varNames.begin(), varNames.end(), ins->dest->name) != varNames.end() && find(blocksOf[funcName][ins->dest->name]->begin(), blocksOf[funcName][ins->dest->name]->end(), blk) == blocksOf[funcName][ins->dest->name]->end())
+                //     blocksOf[funcName][ins->dest->name]->push_back(blk);
             }
         }
         // for(auto v: varNames) {
@@ -286,31 +288,36 @@ void SSABuilder::renameVarinBlk(string funcName, string name, BasicBlock* blk) {
     for(auto ins: blk->instructions) {
         if(ins->opcode == OpCode::PHI) {
             if(ins->dest->name == name) {
+                printf("phi of var %s\n", name.c_str());
                 counter[name]++;
-                ins->dest->name.append("_");
+                ins->dest->name.append("^");
                 ins->dest->name.append(to_string(counter[name]));
                 stack[name]->push_back(counter[name]);
             }
         }
-        else if(ins->opcode == OpCode::MOVE) {
-            if(ins->op2->name == name) {
-                ins->op2->name.append("_");
-                ins->op2->name.append(to_string(counter[name]));
-                counter[name]++;
-                stack[name]->push_back(counter[name]);
-            }
-        }
-        else {
+        else if(ins->opcode != OpCode::MOVE){
             if(ins->op1->name == name) {
+                printf("use of var %s\n", name.c_str());
                 ins->op1->name = name;
-                ins->op1->name.append("_");
+                ins->op1->name.append("^");
                 ins->op1->name.append(to_string(stack[name]->back()));
             }
             if(ins->op2->name == name) {
+                printf("use of var %s\n", name.c_str());
                 ins->op2->name = name;
-                ins->op2->name.append("_");
-                printf("%s\n", ins->op2->name.c_str());
+                ins->op2->name.append("^");
                 ins->op2->name.append(to_string(stack[name]->back()));
+                printf("%s %d\n", ins->op2->name.c_str(), ins->op2);
+            }
+        }
+        else if(ins->opcode == OpCode::MOVE) {
+            printf("found assign to: %s %d \n", ins->op2->name.c_str(), ins->op2);
+            if(ins->op2->name == name) {
+                // printf("def of var %s at val %d\n", name.c_str(), ins->op2);
+                counter[name]++;
+                ins->op2->name.append("^");
+                ins->op2->name.append(to_string(counter[name]));
+                stack[name]->push_back(counter[name]);
             }
         }
     }
@@ -318,13 +325,15 @@ void SSABuilder::renameVarinBlk(string funcName, string name, BasicBlock* blk) {
     for(auto suc_idx: blk->successors) {
         auto suc = (*blocks[funcName])[suc_idx];
         for(auto suc_ins: suc->instructions) {
-            if(suc_ins->op1->name == name) {
-                suc_ins->op1->name.append("_");
-                suc_ins->op1->name.append(to_string((*(stack[name])).back()));
-            }
-            else if(suc_ins->op2->name == name) {
-                suc_ins->op2->name.append("_");
-                suc_ins->op2->name.append(to_string((*(stack[name])).back()));
+            if(suc_ins->opcode == OpCode::PHI) {
+                if(suc_ins->op1->name == name) {
+                    suc_ins->op1->name.append("^");
+                    suc_ins->op1->name.append(to_string((*(stack[name])).back()));
+                }
+                else if(suc_ins->op2->name == name) {
+                    suc_ins->op2->name.append("^");
+                    suc_ins->op2->name.append(to_string((*(stack[name])).back()));
+                }
             }
         }
     }
@@ -332,17 +341,19 @@ void SSABuilder::renameVarinBlk(string funcName, string name, BasicBlock* blk) {
     for(auto block: *blocks[funcName]) {
         if(DomTrees[funcName][block] == NULL)
             continue;
-        if(find(DomTrees[funcName][block]->begin(), DomTrees[funcName][block]->end(), blk) != DomTrees[funcName][block]->end())
+        if(find(DomTrees[funcName][block]->begin(), DomTrees[funcName][block]->end(), blk) != DomTrees[funcName][block]->end()) {
+            printf("find %d's domee %d\n", blk->index, block->index);
             renameVarinBlk(funcName, name, block);
-    }
-
-    for(auto ins: blk->instructions) {
-        if(ins->opcode == OpCode::PHI || ins->opcode == OpCode::MOVE) {
-            if(ins->dest->name == name) {
-                stack[name]->pop_back();
-            }
         }
     }
+
+    // for(auto ins: blk->instructions) {
+    //     if(ins->opcode == OpCode::PHI || ins->opcode == OpCode::MOVE) {
+    //         if(ins->dest->name == name) {
+    //             stack[name]->pop_back();
+    //         }
+    //     }
+    // }
 }
 
 void SSABuilder::renameVar(string name) {
@@ -415,8 +426,9 @@ void SSABuilder::renameVar(string name) {
             iter++;
             continue;
         }
-        counter[name] = 0;
+        counter[name] = -1;
         stack[name]->clear();
+        stack[name]->push_back(counter[name]);
         renameVarinBlk(funcName, name, (*(iter->second))[0]);
         iter++;
     }
