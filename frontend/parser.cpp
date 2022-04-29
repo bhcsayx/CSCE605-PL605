@@ -488,15 +488,16 @@ struct funcAST* parseFuncDecl(struct tokenStream stream) {
         while(next != closeparenToken) {
             cur->type.type = 0;
             cur->name = parseIdent(stream);
-            cur->next = NULL;
-            cur = cur->next;
             next = get(stream, &parseCursor);
-            if(next == commaToken) {
+            if(next != closeparenToken) {
                 expect(stream, &parseCursor, commaToken);
-                next = get(stream, &parseCursor);
-                if(next != closeparenToken)
-                    cur = (struct varDeclAST*)malloc(sizeof(struct varDeclAST));
+                // next = get(stream, &parseCursor);
+                // if(next != closeparenToken)
+                cur->next = (struct varDeclAST*)malloc(sizeof(struct varDeclAST));
+                cur = cur->next;
             }
+            else
+                cur->next = NULL;
         }
     }
     // printf("next: %d\n", get(stream, &parseCursor));

@@ -312,6 +312,12 @@ void SSABuilder::renameVarinBlk(string funcName, string name, BasicBlock* blk) {
         }
         else if(ins->opcode == OpCode::MOVE) {
             printf("found assign to: %s %d \n", ins->op2->name.c_str(), ins->op2);
+            if(ins->op1->name == name) {
+                printf("use of var %s\n", name.c_str());
+                ins->op1->name = name;
+                ins->op1->name.append("^");
+                ins->op1->name.append(to_string(stack[name]->back()));
+            }
             if(ins->op2->name == name) {
                 // printf("def of var %s at val %d\n", name.c_str(), ins->op2);
                 counter[name]++;

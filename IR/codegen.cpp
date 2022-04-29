@@ -63,7 +63,7 @@ Value* codegen(struct factorAST* factor, BasicBlock* block) {
         }
         case 3: {
             Value* res = codegen((struct funcCallAST*)(factor->data), block);
-            printf("faccall res: %s\n", res->name.c_str());
+            // printf("faccall res: %s\n", res->name.c_str());
             return res;
         }
         default: {
@@ -75,7 +75,7 @@ Value* codegen(struct factorAST* factor, BasicBlock* block) {
 
 Value* codegen(struct termAST* term, BasicBlock* block) {
     Value* cur = codegen(term->factor, block);
-    printf("term res: %s\n", cur->name.c_str());
+    // printf("term res: %s\n", cur->name.c_str());
     termTailAST* curAST = term->next;
     while(curAST) {
         Value* extra = codegen(curAST->factor, block);
@@ -86,7 +86,7 @@ Value* codegen(struct termAST* term, BasicBlock* block) {
             cur = block->addInstruction(cur, extra, divToken, ins, valIndex);
         curAST = curAST->next;
     }
-    printf("term res: %s\n", cur->name.c_str());
+    // printf("term res: %s\n", cur->name.c_str());
     return cur;
 }
 
@@ -105,7 +105,7 @@ Value* codegen(struct exprAST* expr, BasicBlock* block) {
             cur = block->addInstruction(cur, extra, minusToken, ins, valIndex);
         curAST = curAST->next;
     }
-    printf("ret expr: %s\n", cur->name.c_str());
+    // printf("ret expr: %s\n", cur->name.c_str());
     return cur;
 }
 
@@ -181,7 +181,7 @@ Value* codegen(struct assignAST* assign, BasicBlock* block) {
         }
         case assignToken: {
             Value* rhs = codegen(assign->rhs, block);
-            printf("rhs name:%s\n", rhs->name.c_str());
+            // printf("rhs name:%s\n", rhs->name.c_str());
             Instruction* ins = new Instruction();
             Value* res = block->addInstruction(rhs, lhs, Token::assignToken, ins, valIndex);
             // printf("%s %d\n", lhs.name.c_str(), rhs.index);
@@ -192,8 +192,8 @@ Value* codegen(struct assignAST* assign, BasicBlock* block) {
             // for(auto k: glob.symbolTable.table.back()) {
             //     printf("%s, %d\n", k.first.c_str(), k.second);
             // }
-            printf("rhs name 2:%s\n", res->name.c_str());
-            return rhs;
+            // printf("rhs name 2:%s\n", res->name.c_str());
+            return res;
             break;
         }
         default: {
@@ -217,9 +217,9 @@ std::vector<Value*> codegen(struct exprListAST* list, BasicBlock* block) {
 Value* codegen(struct relAST* rel, BasicBlock* block, int jmpIndex) {
     // printf("generating rel at block: %d\n", block->index);
     Value* lhs = codegen(rel->lhs, block);
-    printf("rel lhs finished %s\n", lhs->name.c_str());
+    // printf("rel lhs finished %s\n", lhs->name.c_str());
     Value* rhs = codegen(rel->rhs, block);
-    printf("rel rhs finished%s\n", rhs->name.c_str());
+    // printf("rel rhs finished%s\n", rhs->name.c_str());
     Instruction* cmp = new Instruction();
     Value* tmp = block->addInstruction(lhs, rhs, cmpToken, cmp, valIndex);
     // printf("cmp finished%d\n", rel->op);
@@ -286,9 +286,9 @@ Value* codegen(struct funcCallAST* call, BasicBlock* block) {
         else {
             std::vector<Value*> args = codegen(call->args, block);
             Value* func = new Value();
-            printf("call name: %s\n", name.c_str());
+            // printf("call name: %s\n", name.c_str());
             Value* res = block->addCallInstruction(name, args, func, ins, valIndex);
-            printf("call res name: %s\n", res->name.c_str());
+            // printf("call res name: %s\n", res->name.c_str());
             return res;
         }
     }
@@ -396,7 +396,7 @@ void codegen(struct varDeclAST* vars, Module& mod) {
         string name(cur->name);
         if(find(mod.varNames.begin(), mod.varNames.end(), name) == mod.varNames.end())
             mod.varNames.push_back(name);
-        // printf("adding var: %s\n", name.c_str());
+        printf("adding var: %s\n", name.c_str());
         int value = -1;
         glob.symbolTable.insertSymbol(name, value);
         cur = cur->next;
@@ -486,17 +486,17 @@ void codegen(struct funcAST* func, Module& mod) {
     printf("codegen %s\n", func->name);
     Function& res = mod.addFunction(func->name);
     glob.symbolTable.newScope();
-    for(auto s: glob.symbolTable.table.back()) {
-        printf("sym: %s %d\n", s.first.c_str(), s.second);//glob.values[s.second]->name.c_str());
-    }
     if(func->params)
         codegen(func->params, mod);
     if(func->decls)
         codegen(func->decls, mod);
+    for(auto s: glob.symbolTable.table.back()) {
+        printf("sym: %s %d\n", s.first.c_str(), s.second);//glob.values[s.second]->name.c_str());
+    }
     if(func->stmts)
         codegen(func->stmts, res);
     glob.symbolTable.exitScope();
-    dump2txt(mod);
+    // dump2txt(mod);
 }
 
 Module codegen(struct computationAST* comp) {
