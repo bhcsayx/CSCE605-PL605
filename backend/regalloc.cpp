@@ -17,10 +17,11 @@
 
 using namespace std;
 
-liveVarAnalysis::liveVarAnalysis(Module mod) {
-    for(auto func: mod.funcs) {
-        auto funcName = func.name;
-        for(auto blk: func.blocks) {
+liveVarAnalysis::liveVarAnalysis(SSABuilder builder) {
+    auto iter = builder.blocks.begin();
+    while(iter != builder.blocks.end()) {
+        auto funcName = iter->first;
+        for(auto blk: *(iter->second)) {
             entry[funcName][blk] = new set<string>;
             exit[funcName][blk] = new set<string>;
             for(auto ins: blk->instructions) {
@@ -28,11 +29,21 @@ liveVarAnalysis::liveVarAnalysis(Module mod) {
                 post[ins] = new set<string>;
             }
         }
+        iter++;
     }
     workList.clear();
-    for(auto v: mod.globalNames) {
-        // printf("varname: %s\n", v.c_str());
+    
+    for(auto v: builder.globalNames) {
+        printf("varname: %s\n", v.c_str());
         init_state.push_back(v);
+    }
+
+    iter = builder.blocks.begin();
+    while(iter != builder.blocks.end()) {
+        auto funcName = iter->first;
+        init(funcName, builder);
+        propagate();
+        iter++;
     }
 }
 
@@ -45,6 +56,10 @@ void liveVarAnalysis::computeInstruction(Instruction* ins) {
         post[ins]->insert(var);
     if(ins->opcode == OpCode::WRITE)
         post[ins]->insert(ins->op1->name);
+    else if(ins->opcode == OpCode::MOVE) {
+        post[ins]->insert(ins->op1->name);
+        post[ins]->erase(ins->op2->name);
+    }
     else {
         post[ins]->insert(ins->op1->name);
         post[ins]->insert(ins->op2->name);
@@ -53,9 +68,29 @@ void liveVarAnalysis::computeInstruction(Instruction* ins) {
 }
 
 void liveVarAnalysis::computeBlock(BasicBlock* block) {
+    // for(auto suc_idx: block->successors) {
+    //     auto suc = 
+    // }
     auto last_ins = block->instructions[block->instructions.size()-1];
+    // for(auto i: *(entry[funcName][block]))
+    //     pre[last_ins]->insert(i);
+}
+
+void liveVarAnalysis::init(string funcName, SSABuilder builder) {
+    printf("init func:%s\n", funcName.c_str());
+    workList.clear();
+    for(auto block: *(builder.blocks[funcName])) {
+        if(block->successors.size() == 0)
+            workList.push_back(block);
+    }
+    for(auto b: workList)
+        printf("worklist: %d\n", b->index);    
 }
 
 void liveVarAnalysis::propagate() {
-
+    
 }
+
+// void liveVarAnalysis::LVAEntry() {
+//     // for()
+// }

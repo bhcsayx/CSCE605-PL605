@@ -317,12 +317,13 @@ BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
     }
     BasicBlock* join = new BasicBlock();
     func.addBasicBlock(join);
-    auto last_left = (left_end->instructions[left_end->instructions.size()-1])->opcode;
-    if(last_left != OpCode::RET) {
-        left_end->successors.push_back(join->index);
-        join->predecessors.push_back(left_end->index);
-    }
     if(right) {
+        auto last_left = (left_end->instructions[left_end->instructions.size()-1])->opcode;
+        if(last_left != OpCode::RET) {
+            left_end->successors.push_back(join->index);
+            join->predecessors.push_back(left_end->index);
+        }
+
         auto last_right = (left_end->instructions[left_end->instructions.size()-1])->opcode;
         if(last_right != OpCode::RET) {
             right_end->successors.push_back(join->index);
@@ -332,6 +333,12 @@ BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
     else {
         block->successors.push_back(join->index);
         join->predecessors.push_back(block->index);
+
+        auto last_left = (left_end->instructions[left_end->instructions.size()-1])->opcode;
+        if(last_left != OpCode::RET) {
+            left_end->successors.push_back(join->index);
+            join->predecessors.push_back(left_end->index);
+        }
     }
     return join;
 }

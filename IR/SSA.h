@@ -19,6 +19,7 @@ public:
 
     vector<string> varNames;
     vector<string> funcNames;
+    vector<string> globalNames;
     map<string, vector<BasicBlock*>*> blocks;
     map<string, vector<BasicBlock*>*> dfs;
     map<string, map<BasicBlock*, vector<BasicBlock*>*>> DomTrees;

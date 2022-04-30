@@ -33,6 +33,8 @@ SSABuilder::SSABuilder(Module mod) {
         stack[name]->push_back(0);
         counter[name] = 0;
     }
+    for(auto glob: mod.globalNames)
+        globalNames.push_back(glob);
     // for(auto n: varNames) {
     //     printf("new name: %s\n", n.c_str());
     // }
@@ -465,18 +467,35 @@ void SSABuilder::detransform() {
                     auto dest_name = ins->dest->name;
                     auto op1_name = ins->op1->name;
                     auto op2_name = ins->op2->name;
+                    printf("PHI: %s %s %s\n", dest_name.c_str(), op1_name.c_str(), op2_name.c_str());
+                    printf("index: %d %d\n", (*blocks[funcName])[blk->predecessors[0]]->index, (*blocks[funcName])[blk->predecessors[1]]->index);
 
                     Instruction* insl = new Instruction();
                     insl->opcode = OpCode::MOVE;
                     insl->op1 = new Value(); insl->op2 = new Value();
                     insl->op1->name = op1_name; insl->op2->name = dest_name;
                     (*blocks[funcName])[blk->predecessors[0]]->instructions.push_back(insl);
+                    auto opc = (*((*blocks[funcName])[blk->predecessors[0]]->instructions.end()-2))->opcode;
+                    if(opc == OpCode::BLT || opc == OpCode::BGT || opc == OpCode::BEQ || opc == OpCode::BNE || opc == OpCode::BLE || opc == OpCode::BGE) {
+                        auto tmp = (*blocks[funcName])[blk->predecessors[0]]->instructions[(*blocks[funcName])[blk->predecessors[0]]->instructions.size()-2];
+                        (*blocks[funcName])[blk->predecessors[0]]->instructions[(*blocks[funcName])[blk->predecessors[0]]->instructions.size()-2] = 
+                        (*blocks[funcName])[blk->predecessors[0]]->instructions[(*blocks[funcName])[blk->predecessors[0]]->instructions.size()-1];
+                        (*blocks[funcName])[blk->predecessors[0]]->instructions[(*blocks[funcName])[blk->predecessors[0]]->instructions.size()-1] = tmp;
+                    }
 
                     Instruction* insr = new Instruction();
                     insr->opcode = OpCode::MOVE;
                     insr->op1 = new Value(); insr->op2 = new Value();
                     insr->op1->name = op2_name; insr->op2->name = dest_name;
                     (*blocks[funcName])[blk->predecessors[1]]->instructions.push_back(insr);
+                    opc = (*((*blocks[funcName])[blk->predecessors[1]]->instructions.end()-2))->opcode;
+                    if(opc == OpCode::BLT || opc == OpCode::BGT || opc == OpCode::BEQ || opc == OpCode::BNE || opc == OpCode::BLE || opc == OpCode::BGE) {
+                        auto tmp = (*blocks[funcName])[blk->predecessors[1]]->instructions[(*blocks[funcName])[blk->predecessors[1]]->instructions.size()-2];
+                        (*blocks[funcName])[blk->predecessors[1]]->instructions[(*blocks[funcName])[blk->predecessors[1]]->instructions.size()-2] = 
+                        (*blocks[funcName])[blk->predecessors[1]]->instructions[(*blocks[funcName])[blk->predecessors[1]]->instructions.size()-1];
+                        (*blocks[funcName])[blk->predecessors[1]]->instructions[(*blocks[funcName])[blk->predecessors[1]]->instructions.size()-1] = tmp;
+                    }
+
                 }
             }
         }

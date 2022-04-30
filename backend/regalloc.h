@@ -29,13 +29,15 @@ public:
     map<Instruction*, set<string>*> pre;
     map<Instruction*, set<string>*> post;
 
-    liveVarAnalysis(Module mod);
+    liveVarAnalysis(SSABuilder builder);
     ~liveVarAnalysis();
 
     void computeBlock(BasicBlock* block);
     void computeInstruction(Instruction* ins);
 
+    void init(string funcName, SSABuilder builder);
     void propagate();
+    void LVAEntry();
     // void dump();
 };
 
