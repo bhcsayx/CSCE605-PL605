@@ -476,7 +476,7 @@ struct funcAST* parseFuncDecl(struct tokenStream stream) {
         expect(stream, &parseCursor, voidToken);
     expect(stream, &parseCursor, funcToken);
     res->name = parseIdent(stream);
-    printf("func name: %s\n", res->name);
+    // printf("func name: %s\n", res->name);
 
     // parse formal params
     expect(stream, &parseCursor, openparenToken);

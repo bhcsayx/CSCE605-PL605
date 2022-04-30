@@ -14,6 +14,8 @@
 #include "IR/codegen.h"
 #include "IR/SSA.h"
 
+#include "backend/regalloc.h"
+
 int main(int argc, char *argv[]) {
 
     if(argc < 2) {
@@ -57,11 +59,32 @@ int main(int argc, char *argv[]) {
     
     Module mod = codegen(root);
     // printf("get var length: %d\n", mod.varNames.size());
-    dump2txt(mod);
+    // dump2txt(mod);
     SSABuilder builder = SSABuilder(mod);
-    dump2dot(builder, "./plain0.dot");
+
+    string cfg_name = "../graphs/";
+    cfg_name.append((dir));
+    cfg_name.append("-CFG.dot");
+    printf("cfg name: %s\n", cfg_name.c_str());
+    dump2dot(builder, cfg_name);
+
     builder.transform();
     // dump2txt(mod);
-    dump2dot(builder, "./plain.dot");
+
+    string ssa_name = "../graphs/";
+    ssa_name.append((dir));
+    ssa_name.append("-SSA.dot");
+    printf("ssa name: %s\n", ssa_name.c_str());
+    dump2dot(builder, ssa_name);
+
+    builder.detransform();
+    string dessa_name = "../graphs/";
+    dessa_name.append((dir));
+    dessa_name.append("-deSSA.dot");
+    printf("dessa name: %s\n", dessa_name.c_str());
+    dump2dot(builder, dessa_name);
+
+    liveVarAnalysis pass(mod);
+
     exit(0);
 }

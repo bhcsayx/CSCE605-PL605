@@ -1,0 +1,12 @@
+diGraph G { 
+main_BB0 [shape=record, label="<b>main_BB0| {7: READ |8: MOVE %7 input|9: CALL printreverse|10: WRITE input|11: WRITENL }"];
+print_reverse_BB0 [shape=record, label="<b>print_reverse_BB0| {0: READ |1: MOVE %0 input|2: CMP input #70|3: BGT [1]}"];
+print_reverse_BB1 [shape=record, label="<b>print_reverse_BB1| {4: CALL print_reverse|5: WRITE input|6: WRITENL }"];
+print_reverse_BB2 [shape=record, label="<b>print_reverse_BB2| {}"];
+
+print_reverse_BB0:s -> print_reverse_BB1:n [label="branch"];
+print_reverse_BB0:s -> print_reverse_BB2:n [label="fall-through"];
+print_reverse_BB1:s -> print_reverse_BB2:n [label="fall-through"];
+
+
+}

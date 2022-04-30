@@ -1,0 +1,35 @@
+diGraph G { 
+Tail_Recursive_Sum_BB0 [shape=record, label="<b>Tail_Recursive_Sum_BB0| {16: CMP n^-1 #0|17: BEQ [1]}"];
+Tail_Recursive_Sum_BB1 [shape=record, label="<b>Tail_Recursive_Sum_BB1| {18: RET i^-1}"];
+Tail_Recursive_Sum_BB2 [shape=record, label="<b>Tail_Recursive_Sum_BB2| {19: SUB n^-1 #1|20: ADD i^-1 n^-1|21: CALL Tail_Recursive_Sum %19 %20|22: RET %21}"];
+factIteration_BB0 [shape=record, label="<b>factIteration_BB0| {0: MOVE #1 i^0|1: MOVE #1 f^0}"];
+factIteration_BB1 [shape=record, label="<b>factIteration_BB1| {2: MUL f^0 i^0|3: MOVE %2 f^1|4: ADD i^0 #1|5: MOVE %4 i^1}"];
+factIteration_BB2 [shape=record, label="<b>factIteration_BB2| {6: CMP i^1 n^-1|7: BGT [3]}"];
+factIteration_BB3 [shape=record, label="<b>factIteration_BB3| {8: RET f^1}"];
+factRecursive_BB0 [shape=record, label="<b>factRecursive_BB0| {9: CMP n^-1 #1|10: BLE [1]}"];
+factRecursive_BB1 [shape=record, label="<b>factRecursive_BB1| {11: RET #1}"];
+factRecursive_BB2 [shape=record, label="<b>factRecursive_BB2| {12: SUB n^-1 #1|13: CALL factRecursive %12|14: MUL %13 n^-1|15: RET %14}"];
+main_BB0 [shape=record, label="<b>main_BB0| {23: READ |24: MOVE %23 input^0|25: WRITENL |26: CALL factIteration input|27: WRITE %26|28: WRITENL |29: CALL factRecursive input|30: WRITE %29|31: WRITENL |32: CALL Tail_Recursive_Sum input #0|33: WRITE %32|34: WRITENL }"];
+
+factIteration_BB0:s -> factIteration_BB1:n [label="fall-through"];
+factIteration_BB1:s -> factIteration_BB2:n [label="fall-through"];
+factIteration_BB2:s -> factIteration_BB1:n [label="branch"];
+factIteration_BB2:s -> factIteration_BB3:n [label="fall-through"];
+factIteration_BB1:b -> factIteration_BB0:b [color=blue, style=dotted, label="Dom"];
+factIteration_BB2:b -> factIteration_BB0:b [color=blue, style=dotted, label="Dom"];
+factIteration_BB2:b -> factIteration_BB1:b [color=blue, style=dotted, label="Dom"];
+factIteration_BB3:b -> factIteration_BB0:b [color=blue, style=dotted, label="Dom"];
+factIteration_BB3:b -> factIteration_BB1:b [color=blue, style=dotted, label="Dom"];
+factIteration_BB3:b -> factIteration_BB2:b [color=blue, style=dotted, label="Dom"];
+factIteration_BB2:b -> factIteration_BB1:b [color=green, style=dotted, label="DF"];
+factRecursive_BB0:s -> factRecursive_BB1:n [label="branch"];
+factRecursive_BB0:s -> factRecursive_BB2:n [label="fall-through"];
+factRecursive_BB1:b -> factRecursive_BB0:b [color=blue, style=dotted, label="Dom"];
+factRecursive_BB2:b -> factRecursive_BB0:b [color=blue, style=dotted, label="Dom"];
+Tail_Recursive_Sum_BB0:s -> Tail_Recursive_Sum_BB1:n [label="branch"];
+Tail_Recursive_Sum_BB0:s -> Tail_Recursive_Sum_BB2:n [label="fall-through"];
+Tail_Recursive_Sum_BB1:b -> Tail_Recursive_Sum_BB0:b [color=blue, style=dotted, label="Dom"];
+Tail_Recursive_Sum_BB2:b -> Tail_Recursive_Sum_BB0:b [color=blue, style=dotted, label="Dom"];
+
+
+}

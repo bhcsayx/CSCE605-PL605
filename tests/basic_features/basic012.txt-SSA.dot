@@ -1,0 +1,15 @@
+diGraph G { 
+main_BB0 [shape=record, label="<b>main_BB0| {7: READ |8: MOVE %7 input^0|9: CALL printreverse|10: WRITE input^0|11: WRITENL }"];
+print_reverse_BB0 [shape=record, label="<b>print_reverse_BB0| {0: READ |1: MOVE %0 input^0|2: CMP input^0 #70|3: BGT [1]}"];
+print_reverse_BB1 [shape=record, label="<b>print_reverse_BB1| {4: CALL print_reverse|5: WRITE input^0|6: WRITENL }"];
+print_reverse_BB2 [shape=record, label="<b>print_reverse_BB2| {}"];
+
+print_reverse_BB0:s -> print_reverse_BB1:n [label="branch"];
+print_reverse_BB0:s -> print_reverse_BB2:n [label="fall-through"];
+print_reverse_BB1:s -> print_reverse_BB2:n [label="fall-through"];
+print_reverse_BB1:b -> print_reverse_BB0:b [color=blue, style=dotted, label="Dom"];
+print_reverse_BB2:b -> print_reverse_BB0:b [color=blue, style=dotted, label="Dom"];
+print_reverse_BB1:b -> print_reverse_BB2:b [color=green, style=dotted, label="DF"];
+
+
+}

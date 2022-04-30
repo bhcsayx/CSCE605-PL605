@@ -10,7 +10,7 @@
 
 using namespace std;
 
-extern Global glob;
+// extern Global glob;
 
 SSABuilder::SSABuilder(Module mod) {
     for(auto func: mod.funcs) { 
@@ -99,15 +99,15 @@ void SSABuilder::computeDomTree() {
             }
         }
     
-        map<BasicBlock*, vector<BasicBlock*>*>::iterator dom_iter = DomTrees[funcName].begin();
-        while(dom_iter != DomTrees[funcName].end()) {
-            auto dor = dom_iter->first->index;
-            printf("dor: %d\n", (*(dom_iter->second)).size());
-            for(auto b: *(dom_iter->second)) {
-                printf("dom: %d -> %d\n", dor, b->index);
-            }
-            dom_iter++;
-        }
+        // map<BasicBlock*, vector<BasicBlock*>*>::iterator dom_iter = DomTrees[funcName].begin();
+        // while(dom_iter != DomTrees[funcName].end()) {
+        //     auto dor = dom_iter->first->index;
+        //     printf("dor: %d\n", (*(dom_iter->second)).size());
+        //     for(auto b: *(dom_iter->second)) {
+        //         printf("dom: %d -> %d\n", dor, b->index);
+        //     }
+        //     dom_iter++;
+        // }
         
         iter++;
     }
@@ -124,7 +124,7 @@ void SSABuilder::computeDFTree() {
             continue;
         }
         for(auto blk: *blocks[funcName]) {
-            printf("blk: %d\n", blk->index);
+            // printf("blk: %d\n", blk->index);
             auto doms = DomTrees[funcName][blk];
             // printf("doms: %d\n", doms);
             if(DFTrees[funcName][blk] == NULL)
@@ -133,18 +133,18 @@ void SSABuilder::computeDFTree() {
                 for(auto d: *doms) {
                     if(DFTrees[funcName][d] == NULL)
                         DFTrees[funcName][d] = new vector<BasicBlock*>;
-                    printf("%d domed by %d\n", blk->index, d->index);
+                    // printf("%d domed by %d\n", blk->index, d->index);
                     for(auto suc: blk->successors) {
                         auto suc_block = (*blocks[funcName])[suc];
                         auto suc_dom = DomTrees[funcName][suc_block];
-                        printf("%d pred %d domed by %d\n", suc, blk->index, d->index);
+                        // printf("%d pred %d domed by %d\n", suc, blk->index, d->index);
                         if(suc != d->index && find((*suc_dom).begin(), (*suc_dom).end(), d) == (*suc_dom).end()) {
-                            printf("%d df %d\n", suc, d->index);
+                            // printf("%d df %d\n", suc, d->index);
                             (DFTrees[funcName][d])->push_back(suc_block);
                         }
                         if(find((*suc_dom).begin(), (*suc_dom).end(), blk) == (*suc_dom).end()) {
                             if(find(((DFTrees[funcName][blk]))->begin(), ((DFTrees[funcName][blk]))->end(), suc_block) == ((DFTrees[funcName][blk]))->end()) {
-                                printf("%d df %d\n", suc, blk->index);
+                                // printf("%d df %d\n", suc, blk->index);
                                 (DFTrees[funcName][blk])->push_back(suc_block);
                             }
                         }
@@ -153,15 +153,15 @@ void SSABuilder::computeDFTree() {
                 }
             }
         }
-        map<BasicBlock*, vector<BasicBlock*>*>::iterator df_iter = DFTrees[funcName].begin();
-        while(df_iter != DFTrees[funcName].end()) {
-            auto dor = df_iter->first->index;
-            // printf("dor: %d\n", (*(df_iter->second)).size());
-            for(auto b: *(df_iter->second)) {
-                printf("df: %d -> %d\n", dor, b->index);
-            }
-            df_iter++;
-        }
+        // map<BasicBlock*, vector<BasicBlock*>*>::iterator df_iter = DFTrees[funcName].begin();
+        // while(df_iter != DFTrees[funcName].end()) {
+        //     auto dor = df_iter->first->index;
+        //     // printf("dor: %d\n", (*(df_iter->second)).size());
+        //     for(auto b: *(df_iter->second)) {
+        //         printf("df: %d -> %d\n", dor, b->index);
+        //     }
+        //     df_iter++;
+        // }
         iter++;
     }    
 }
@@ -171,7 +171,7 @@ void SSABuilder::getBlocksofVar() {
     
     while(iter != blocks.end()) {
         auto funcName = iter->first;
-        printf("func name: %s\n", funcName.c_str());
+        // printf("func name: %s\n", funcName.c_str());
         // printf("blocks size:%d\n", iter->second->size());
         if(iter->second->size() == 0) {
             iter++;
@@ -297,23 +297,23 @@ void SSABuilder::renameVarinBlk(string funcName, string name, BasicBlock* blk) {
         }
         else if(ins->opcode != OpCode::MOVE){
             if(ins->op1->name == name) {
-                printf("use of var %s\n", name.c_str());
+                // printf("use of var %s\n", name.c_str());
                 ins->op1->name = name;
                 ins->op1->name.append("^");
                 ins->op1->name.append(to_string(stack[name]->back()));
             }
             if(ins->op2->name == name) {
-                printf("use of var %s\n", name.c_str());
+                // printf("use of var %s\n", name.c_str());
                 ins->op2->name = name;
                 ins->op2->name.append("^");
                 ins->op2->name.append(to_string(stack[name]->back()));
-                printf("%s %d\n", ins->op2->name.c_str(), ins->op2);
+                // printf("%s %d\n", ins->op2->name.c_str(), ins->op2);
             }
         }
         else if(ins->opcode == OpCode::MOVE) {
-            printf("found assign to: %s %d \n", ins->op2->name.c_str(), ins->op2);
+            // printf("found assign to: %s %d \n", ins->op2->name.c_str(), ins->op2);
             if(ins->op1->name == name) {
-                printf("use of var %s\n", name.c_str());
+                // printf("use of var %s\n", name.c_str());
                 ins->op1->name = name;
                 ins->op1->name.append("^");
                 ins->op1->name.append(to_string(stack[name]->back()));
@@ -348,7 +348,7 @@ void SSABuilder::renameVarinBlk(string funcName, string name, BasicBlock* blk) {
         if(DomTrees[funcName][block] == NULL)
             continue;
         if(find(DomTrees[funcName][block]->begin(), DomTrees[funcName][block]->end(), blk) != DomTrees[funcName][block]->end()) {
-            printf("find %d's domee %d\n", blk->index, block->index);
+            // printf("find %d's domee %d\n", blk->index, block->index);
             renameVarinBlk(funcName, name, block);
         }
     }
@@ -447,4 +447,47 @@ void SSABuilder::transform() {
     insertPhiNode();
     for(auto var: varNames)
         renameVar(var);
+}
+
+void SSABuilder::detransform() {
+    map<string, vector<BasicBlock*>*>::iterator iter = blocks.begin();
+    while(iter != blocks.end()) {
+        auto funcName = iter->first;
+        // printf("name: %s\n", funcName.c_str());
+        // printf("blocks size:%d\n", iter->second->size());
+        if(iter->second->size() == 0) {
+            iter++;
+            continue;
+        }
+        for(auto blk: *blocks[funcName]) {
+            for(auto ins : blk->instructions) {
+                if(ins->opcode == OpCode::PHI) {
+                    auto dest_name = ins->dest->name;
+                    auto op1_name = ins->op1->name;
+                    auto op2_name = ins->op2->name;
+
+                    Instruction* insl = new Instruction();
+                    insl->opcode = OpCode::MOVE;
+                    insl->op1 = new Value(); insl->op2 = new Value();
+                    insl->op1->name = op1_name; insl->op2->name = dest_name;
+                    (*blocks[funcName])[blk->predecessors[0]]->instructions.push_back(insl);
+
+                    Instruction* insr = new Instruction();
+                    insr->opcode = OpCode::MOVE;
+                    insr->op1 = new Value(); insr->op2 = new Value();
+                    insr->op1->name = op2_name; insr->op2->name = dest_name;
+                    (*blocks[funcName])[blk->predecessors[1]]->instructions.push_back(insr);
+                }
+            }
+        }
+        for(auto blk: *blocks[funcName]) {
+            for(auto ins=blk->instructions.begin(); ins!=blk->instructions.end();) {
+                if((*ins)->opcode == OpCode::PHI)
+                    ins = blk->instructions.erase(ins);
+                else
+                    ins++;
+            }
+        }
+        iter++;
+    }
 }

@@ -39,6 +39,7 @@ public:
     void insertPhiNode();
     void renameVar(string name);
     void transform();
+    void detransform();
 };
 
 #endif

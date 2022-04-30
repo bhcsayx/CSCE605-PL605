@@ -16,7 +16,7 @@ Global glob;
 Value* codegen(struct desiAST* desi, BasicBlock* block, bool is_left=false) {
     if(desi->type == 0) {
         string name(desi->id);
-        printf("looking up for name: %s\n", name.c_str());
+        // printf("looking up for name: %s\n", name.c_str());
         // int index = ((Module*)(((Function*)(block->func))->module))->symbolTable.lookupSymbol(name);
         // if(block->glob == NULL) {
         //     printf("error.");
@@ -267,9 +267,9 @@ Value* codegen(struct funcCallAST* call, BasicBlock* block) {
     }
     else if(name == "OutputNum") {
         Value* num = codegen(call->args, block)[0];
-        printf("output num name: %s\n", num->name.c_str());
+        // printf("output num name: %s\n", num->name.c_str());
         Value* res = block->addInstruction(num, empty, writeToken, ins, valIndex);
-        printf("output res name: %s\n", res->name.c_str());
+        // printf("output res name: %s\n", res->name.c_str());
         return res;
     }
     else if(name == "OutputNewLine") {
@@ -317,11 +317,17 @@ BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
     }
     BasicBlock* join = new BasicBlock();
     func.addBasicBlock(join);
-    left_end->successors.push_back(join->index);
-    join->predecessors.push_back(left_end->index);
+    auto last_left = (left_end->instructions[left_end->instructions.size()-1])->opcode;
+    if(last_left != OpCode::RET) {
+        left_end->successors.push_back(join->index);
+        join->predecessors.push_back(left_end->index);
+    }
     if(right) {
-        right_end->successors.push_back(join->index);
-        join->predecessors.push_back(right->index);
+        auto last_right = (left_end->instructions[left_end->instructions.size()-1])->opcode;
+        if(last_right != OpCode::RET) {
+            right_end->successors.push_back(join->index);
+            join->predecessors.push_back(right->index);
+        }
     }
     else {
         block->successors.push_back(join->index);
@@ -389,13 +395,17 @@ Value* codegen(struct retAST* _return, BasicBlock* block) {
     block->addInstruction(v1, v2, returnToken, ins, valIndex);
 }
 
-void codegen(struct varDeclAST* vars, Module& mod) {
+void codegen(struct varDeclAST* vars, Module& mod, bool is_global=false) {
     // printf("processing vardecl\n");
     struct varDeclAST* cur = vars;
     while(cur) {
         string name(cur->name);
         if(find(mod.varNames.begin(), mod.varNames.end(), name) == mod.varNames.end())
             mod.varNames.push_back(name);
+        if(is_global) {
+            if(find(mod.globalNames.begin(), mod.globalNames.end(), name) == mod.globalNames.end())
+                mod.globalNames.push_back(name);
+        }
         printf("adding var: %s\n", name.c_str());
         int value = -1;
         glob.symbolTable.insertSymbol(name, value);
@@ -417,9 +427,9 @@ BasicBlock* codegen(struct stmtSeqAST* stmts, Function& func, BasicBlock* block)
     while(cur) {
         switch(cur->stat->type) {
             case 0: { // assign'
-                printf("handling assign...\n");
+                // printf("handling assign...\n");
                 Value* res = codegen((struct assignAST*)(cur->stat->data), curBlock);
-                printf("assign finished: %s\n", res->name.c_str());
+                // printf("assign finished: %s\n", res->name.c_str());
                 break;
             }
             case 1: { // funccall
@@ -490,9 +500,9 @@ void codegen(struct funcAST* func, Module& mod) {
         codegen(func->params, mod);
     if(func->decls)
         codegen(func->decls, mod);
-    for(auto s: glob.symbolTable.table.back()) {
-        printf("sym: %s %d\n", s.first.c_str(), s.second);//glob.values[s.second]->name.c_str());
-    }
+    // for(auto s: glob.symbolTable.table.back()) {
+    //     printf("sym: %s %d\n", s.first.c_str(), s.second);//glob.values[s.second]->name.c_str());
+    // }
     if(func->stmts)
         codegen(func->stmts, res);
     glob.symbolTable.exitScope();
@@ -504,7 +514,7 @@ Module codegen(struct computationAST* comp) {
 
     // add global var decls
     glob.symbolTable.newScope();
-    codegen(comp->vars, res);
+    codegen(comp->vars, res, true);
     // printf("type decl success.\n");
     // add func decl handling
     auto funcPtr = comp->funcs;

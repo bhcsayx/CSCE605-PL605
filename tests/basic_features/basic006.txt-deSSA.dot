@@ -1,0 +1,43 @@
+diGraph G { 
+check_for_sanity_BB0 [shape=record, label="<b>check_for_sanity_BB0| {0: WRITE }"];
+get_const_BB0 [shape=record, label="<b>get_const_BB0| {1: RET n^-1}"];
+main_BB0 [shape=record, label="<b>main_BB0| {27: CALL check_for_sanity|28: WRITENL |29: CALL pyramic_print}"];
+pyramic_print_BB0 [shape=record, label="<b>pyramic_print_BB0| {2: WRITENL |3: CALL get_const #15|4: MOVE %3 num^0|5: MOVE #1 i^0|6: MOVE #0 j^0|7: MOVE j^0 j^1|8: MOVE i^0 i^1}"];
+pyramic_print_BB1 [shape=record, label="<b>pyramic_print_BB1| {9: ADD num^0 #1|10: CMP i^1 %7|11: BLT [2]}"];
+pyramic_print_BB2 [shape=record, label="<b>pyramic_print_BB2| {12: MOVE #0 j^2|13: MOVE j^2 j^3}"];
+pyramic_print_BB3 [shape=record, label="<b>pyramic_print_BB3| {14: CMP j^3 i^1|15: BLT [4]}"];
+pyramic_print_BB4 [shape=record, label="<b>pyramic_print_BB4| {16: WRITE |17: ADD j^3 #1|18: MOVE %14 j^4|19: BRA [3]|20: MOVE j^4 j^3}"];
+pyramic_print_BB5 [shape=record, label="<b>pyramic_print_BB5| {21: WRITENL |22: ADD i^1 #1|23: MOVE %18 i^2|24: BRA [1]|25: MOVE j^4 j^1|26: MOVE i^2 i^1}"];
+pyramic_print_BB6 [shape=record, label="<b>pyramic_print_BB6| {}"];
+
+pyramic_print_BB0:s -> pyramic_print_BB1:n [label="fall-through"];
+pyramic_print_BB1:s -> pyramic_print_BB2:n [label="branch"];
+pyramic_print_BB1:s -> pyramic_print_BB6:n [label="fall-through"];
+pyramic_print_BB2:s -> pyramic_print_BB3:n [label="fall-through"];
+pyramic_print_BB3:s -> pyramic_print_BB4:n [label="branch"];
+pyramic_print_BB3:s -> pyramic_print_BB5:n [label="fall-through"];
+pyramic_print_BB4:s -> pyramic_print_BB3:n [label="fall-through"];
+pyramic_print_BB5:s -> pyramic_print_BB1:n [label="fall-through"];
+pyramic_print_BB1:b -> pyramic_print_BB0:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB2:b -> pyramic_print_BB0:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB2:b -> pyramic_print_BB1:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB3:b -> pyramic_print_BB0:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB3:b -> pyramic_print_BB1:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB3:b -> pyramic_print_BB2:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB4:b -> pyramic_print_BB0:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB4:b -> pyramic_print_BB1:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB4:b -> pyramic_print_BB2:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB4:b -> pyramic_print_BB3:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB5:b -> pyramic_print_BB0:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB5:b -> pyramic_print_BB1:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB5:b -> pyramic_print_BB2:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB5:b -> pyramic_print_BB3:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB6:b -> pyramic_print_BB0:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB6:b -> pyramic_print_BB1:b [color=blue, style=dotted, label="Dom"];
+pyramic_print_BB2:b -> pyramic_print_BB1:b [color=green, style=dotted, label="DF"];
+pyramic_print_BB3:b -> pyramic_print_BB1:b [color=green, style=dotted, label="DF"];
+pyramic_print_BB4:b -> pyramic_print_BB3:b [color=green, style=dotted, label="DF"];
+pyramic_print_BB5:b -> pyramic_print_BB1:b [color=green, style=dotted, label="DF"];
+
+
+}
