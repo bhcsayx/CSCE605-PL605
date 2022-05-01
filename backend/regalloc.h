@@ -21,6 +21,7 @@ using namespace std;
 class liveVarAnalysis {
 public:
     vector<BasicBlock*> workList;
+    vector<BasicBlock*> everOnWorkList;
 
     vector<string> init_state;
     map<string, map<BasicBlock*, set<string>*>> entry;
@@ -32,13 +33,22 @@ public:
     liveVarAnalysis(SSABuilder builder);
     ~liveVarAnalysis();
 
-    void computeBlock(BasicBlock* block);
+    void computeBlock(string funcName, SSABuilder builder, BasicBlock* block);
     void computeInstruction(Instruction* ins);
 
     void init(string funcName, SSABuilder builder);
-    void propagate();
-    void LVAEntry();
-    // void dump();
+    void propagate(string funcName, SSABuilder builder);
+
+    void addInstructionwithRes(Dot* dot, string name, Instruction* ins);
+    void dump2dot(SSABuilder builder, string name);
+};
+
+class regAlloc {
+public:
+    map<string, map<string, set<string>*>>rig;
+    map<string, int> res;
+
+    regAlloc(SSABuilder builder, liveVarAnalysis LVA);
 };
 
 #endif

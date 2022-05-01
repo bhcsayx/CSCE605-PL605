@@ -84,7 +84,19 @@ int main(int argc, char *argv[]) {
     printf("dessa name: %s\n", dessa_name.c_str());
     dump2dot(builder, dessa_name);
 
-    liveVarAnalysis pass(mod);
+    // for(auto func: builder.funcNames) {
+    //     printf("glob func: %s\n", func.c_str());
+    //     for(auto s: *(builder.globalNames[func])) {
+    //         printf("glob var: %s\n", s.c_str());
+    //     }
+    // }
+
+    liveVarAnalysis LVA(builder);
+    string reg_name = "../graphs/";
+    reg_name.append((dir));
+    reg_name.append("-LVA.dot");
+    LVA.dump2dot(builder, reg_name);
+    regAlloc alloc(builder, LVA);
 
     exit(0);
 }

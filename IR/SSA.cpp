@@ -21,6 +21,7 @@ SSABuilder::SSABuilder(Module mod) {
         blocks[func.name] = tmp;
         dfs[func.name] = NULL;
         funcNames.push_back(func.name);
+        globalNames[func.name] = new vector<string>;
         // printf("SSA func: %s\n", func.name.c_str());
         // DomTrees[func.name] = NULL;
         // DFTrees[func.name] = NULL;
@@ -33,8 +34,8 @@ SSABuilder::SSABuilder(Module mod) {
         stack[name]->push_back(0);
         counter[name] = 0;
     }
-    for(auto glob: mod.globalNames)
-        globalNames.push_back(glob);
+    // for(auto glob: mod.globalNames)
+    //     globalNames.push_back(glob);
     // for(auto n: varNames) {
     //     printf("new name: %s\n", n.c_str());
     // }
@@ -449,6 +450,29 @@ void SSABuilder::transform() {
     insertPhiNode();
     for(auto var: varNames)
         renameVar(var);
+    map<string, vector<BasicBlock*>*>::iterator iter = blocks.begin();
+    while(iter != blocks.end()) {
+        auto funcName = iter->first;
+        // printf("name: %s\n", funcName.c_str());
+        // printf("blocks size:%d\n", iter->second->size());
+        if(iter->second->size() == 0) {
+            iter++;
+            continue;
+        }
+        for(auto blk: *(iter->second)) {
+            for(auto ins: blk->instructions) {
+                if(ins->opcode == OpCode::WRITE) {
+                    globalNames[funcName]->push_back(ins->op1->name);
+                    printf("write: %s\n", ins->op1->name.c_str());
+                }
+                if(ins->opcode == OpCode::RET) {
+                    if(ins->op1->name != "")
+                        globalNames[funcName]->push_back(ins->op1->name);
+                }
+            }
+        }
+        iter++;
+    }
 }
 
 void SSABuilder::detransform() {
@@ -509,4 +533,10 @@ void SSABuilder::detransform() {
         }
         iter++;
     }
+    // for(auto func: funcNames) {
+    //     printf("glob func: %s\n", func.c_str());
+    //     for(auto s: *(globalNames[func])) {
+    //         printf("glob var: %s\n", s.c_str());
+    //     }
+    // }
 }
