@@ -96,7 +96,8 @@ int main(int argc, char *argv[]) {
     reg_name.append((dir));
     reg_name.append("-LVA.dot");
     LVA.dump2dot(builder, reg_name);
-    regAlloc alloc(builder, LVA);
+
+    regAlloc alloc(builder, LVA, 3);
 
     exit(0);
 }

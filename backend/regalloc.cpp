@@ -33,13 +33,12 @@ liveVarAnalysis::liveVarAnalysis(SSABuilder builder) {
     }
     workList.clear();
     
-    // for(auto funcName: builder.funcNames) {
-    //     printf("global size: %d\n", builder.globalNames[funcName]->size());
-    //     for(auto v: *(builder.globalNames[funcName])) {
-    //         printf("varname: %s\n", v.c_str());
-    //         init_state.push_back(v);
-    //     }
-    // }
+    for(auto funcName: builder.funcNames) {
+        printf("global size: %d\n", builder.globalNames[funcName]->size());
+        for(auto v: *(builder.globalNames[funcName])) {
+            printf("varname: %s\n", v.c_str());
+        }
+    }
 
     iter = builder.blocks.begin();
     while(iter != builder.blocks.end()) {
@@ -57,10 +56,11 @@ liveVarAnalysis::~liveVarAnalysis() {
 void liveVarAnalysis::computeInstruction(Instruction* ins) {
     for(auto var: *(pre[ins]))
         post[ins]->insert(var);
-    if(ins->opcode == OpCode::WRITE)
+    if(ins->opcode == OpCode::WRITE && ins->op1->type != Type::constVal)
         post[ins]->insert(ins->op1->name);
     else if(ins->opcode == OpCode::MOVE) {
-        post[ins]->insert(ins->op1->name);
+        if(ins->op1->type != Type::constVal)
+            post[ins]->insert(ins->op1->name);
         post[ins]->erase(ins->op2->name);
     }
     else {
@@ -126,8 +126,8 @@ void liveVarAnalysis::init(string funcName, SSABuilder builder) {
 
 void liveVarAnalysis::propagate(string funcName, SSABuilder builder) {
     while(workList.size() != 0) {
-        for(auto b: workList)
-            printf("worklist: %d\n", b->index);    
+        // for(auto b: workList)
+        //     printf("worklist: %d\n", b->index);    
         auto blk = workList.back();
         workList.pop_back();
         everOnWorkList.push_back(blk);
@@ -432,7 +432,7 @@ void liveVarAnalysis::dump2dot(SSABuilder builder, string name) {
     dot.dump(name);
 }
 
-regAlloc::regAlloc(SSABuilder builder, liveVarAnalysis LVA) {
+regAlloc::regAlloc(SSABuilder builder, liveVarAnalysis LVA, int k) {
     rig.clear();
 
     map<string, vector<BasicBlock*>*>::iterator iter = builder.blocks.begin();
@@ -446,8 +446,8 @@ regAlloc::regAlloc(SSABuilder builder, liveVarAnalysis LVA) {
         for(auto blk: *(iter->second)) {
             for(auto ins: blk->instructions) {
                 for(auto key: *(LVA.post[ins])) {
-                    if(key == "")
-                        continue;
+                    // if(key == "")
+                    //     continue;
                     if(!rig[funcName].count(key))
                         rig[funcName][key] = new set<string>;
                     for(auto other: *(LVA.post[ins])) {
@@ -468,7 +468,66 @@ regAlloc::regAlloc(SSABuilder builder, liveVarAnalysis LVA) {
                 printf("\trig value: %s\n", value.c_str());
             }
         }
+        color(funcName, k);
         iter++;
     }
 
+}
+
+void regAlloc::color(string funcName, int k) {
+    auto tmp_rig = rig[funcName];
+    map<string, bool> deleted;
+
+    int num_deleted = 0;
+    for(auto key: tmp_rig)
+        deleted[key.first] = false;
+    
+    while(num_deleted < tmp_rig.size()) {
+        auto rig_iter = tmp_rig.begin();
+        while(rig_iter != tmp_rig.end()) {
+            if(rig_iter->second->size() < k && !deleted[rig_iter->first])
+                break;
+            rig_iter++;
+        }
+        if(rig_iter != tmp_rig.end()) {
+            // printf("deleting node: %s\n", rig_iter->first.c_str());
+            deleted[rig_iter->first] = true;
+            order[funcName].push_back(rig_iter->first);
+        }
+        else {
+            for(auto iter=tmp_rig.begin(); iter!=tmp_rig.end(); iter++) {
+                if(!deleted[iter->first]) {
+                    // printf("deleting node bigger than k: %s\n", iter->first.c_str());
+                    deleted[iter->first] = true;
+                    order[funcName].push_back(iter->first);
+                    break;
+                }
+            }
+        }
+        num_deleted++;
+    }
+    // for(auto s: order[funcName]) {
+    //     printf("node: %s\n", s.c_str());
+    // }
+    for(auto order_iter=order[funcName].rbegin(); order_iter!=order[funcName].rend(); order_iter++) {
+        int i;
+        // printf("coloring %s\n", (*(order_iter)).c_str());
+        for(i=1;i<k+1;i++) {
+            bool able = true;
+            for(auto s: *(tmp_rig[*(order_iter)])) {
+                if(res[funcName][s]==i && !deleted[s]) {
+                    able = false; break;
+                }
+            }
+            if(!able) continue;
+            else break;
+        }
+        if(i != k+1) res[funcName][*(order_iter)] = i;
+        else res[funcName][*(order_iter)] = -1;
+        deleted[*(order_iter)] = false;
+    }
+
+    for(auto s: order[funcName]) {
+        printf("reg alloc for %s: %d\n", s.c_str(), res[funcName][s]);
+    }
 }

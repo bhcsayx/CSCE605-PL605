@@ -45,10 +45,14 @@ public:
 
 class regAlloc {
 public:
+    int k;
     map<string, map<string, set<string>*>>rig;
-    map<string, int> res;
+    map<string, vector<string>> order;
+    map<string, map<string, int>> res;
 
-    regAlloc(SSABuilder builder, liveVarAnalysis LVA);
+    regAlloc(SSABuilder builder, liveVarAnalysis LVA, int k);
+
+    void color(string funcName, int k);
 };
 
 #endif

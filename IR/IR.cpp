@@ -7,6 +7,7 @@
 
 Value* constValue(int value) {
     Value* res = new Value(value);
+    res->type = Type::constVal;
     return res;
 }
 

@@ -462,12 +462,16 @@ void SSABuilder::transform() {
         for(auto blk: *(iter->second)) {
             for(auto ins: blk->instructions) {
                 if(ins->opcode == OpCode::WRITE) {
-                    globalNames[funcName]->push_back(ins->op1->name);
-                    printf("write: %s\n", ins->op1->name.c_str());
+                    if(ins->op1->type != Type::constVal) {
+                        globalNames[funcName]->push_back(ins->op1->name);
+                        printf("write: %s\n", ins->op1->name.c_str());
+                    }
                 }
                 if(ins->opcode == OpCode::RET) {
-                    if(ins->op1->name != "")
+                    if(ins->op1->name != "") {
+                        printf("adding return %s\n", ins->op1->name.c_str());
                         globalNames[funcName]->push_back(ins->op1->name);
+                    }
                 }
             }
         }
