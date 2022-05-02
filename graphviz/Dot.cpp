@@ -226,7 +226,10 @@ void Dot::addInstruction(string name, Instruction* ins) {
         }
         case OpCode::WRITE: {
             res.append("WRITE ");
-            res.append(ins->op1->name);
+            if(ins->op1->type == Type::constVal)
+                res.append(to_string(ins->op1->value));
+            else
+                res.append(ins->op1->name);
             break;
         }
         case OpCode::WRITENL: {

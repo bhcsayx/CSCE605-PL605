@@ -15,6 +15,7 @@
 #include "IR/SSA.h"
 
 #include "backend/regalloc.h"
+#include "backend/dlxgen.h"
 
 int main(int argc, char *argv[]) {
 
@@ -62,7 +63,8 @@ int main(int argc, char *argv[]) {
     // dump2txt(mod);
     SSABuilder builder = SSABuilder(mod);
 
-    string cfg_name = "../graphs/";
+    // string cfg_name = "../graphs/";
+    string cfg_name = "";
     cfg_name.append((dir));
     cfg_name.append("-CFG.dot");
     printf("cfg name: %s\n", cfg_name.c_str());
@@ -71,14 +73,16 @@ int main(int argc, char *argv[]) {
     builder.transform();
     // dump2txt(mod);
 
-    string ssa_name = "../graphs/";
+    // string ssa_name = "../graphs/";
+    string ssa_name = "";
     ssa_name.append((dir));
     ssa_name.append("-SSA.dot");
     printf("ssa name: %s\n", ssa_name.c_str());
     dump2dot(builder, ssa_name);
 
     builder.detransform();
-    string dessa_name = "../graphs/";
+    // string dessa_name = "../graphs/";
+    string dessa_name = "";
     dessa_name.append((dir));
     dessa_name.append("-deSSA.dot");
     printf("dessa name: %s\n", dessa_name.c_str());
@@ -92,12 +96,21 @@ int main(int argc, char *argv[]) {
     // }
 
     liveVarAnalysis LVA(builder);
-    string reg_name = "../graphs/";
+    // string reg_name = "../graphs/";
+    string reg_name = "";
     reg_name.append((dir));
     reg_name.append("-LVA.dot");
     LVA.dump2dot(builder, reg_name);
 
     regAlloc alloc(builder, LVA, 3);
+
+    DLXGenerator dlxgen(alloc);
+    dlxgen.dlxgen(builder);
+
+    string dlx_name = "";
+    dlx_name.append((dir));
+    dlx_name.append(".dlx");
+    dlxgen.dump(dlx_name);
 
     exit(0);
 }
