@@ -68,7 +68,14 @@ void DLXGenerator::genAdd(Instruction* ins, string funcName) {
         }
     }
     else if(reg1 == -1) {
-        printf("need to load from memory...%d\n", globals[ins->op1->name]);
+        printf("loading from memory...%d\n", globals[ins->op1->name]);
+        reg1 = 27;
+        int ld1 = (32 << 26);
+        ld1 |= (27 << 21);
+        ld1 |= (30 << 16);
+        int offset = globals[ins->op1->name] & 0xffff;
+        ld1 |= offset;
+        code.push_back(ld1);
     }
     if(reg2 == 0) {
         if(ins->op2->type == Type::constVal) {
@@ -82,12 +89,20 @@ void DLXGenerator::genAdd(Instruction* ins, string funcName) {
     }
     else if(reg2 == -1) {
         printf("need to load from memory...\n", globals[ins->op2->name]);
+        reg2 = 26;
+        int ld2 = (32 << 26);
+        ld2 |= (26 << 21);
+        ld2 |= (30 << 16);
+        int offset = globals[ins->op2->name] & 0xffff;
+        ld2 |= offset;
+        code.push_back(ld2);
     }
     int add = 0;
     if(regdest != -1) {
         add |= (regdest << 21);
     }
     else {
+        regdest = 27;
         add |= (27 << 21);
     }
     add |= (reg1 << 16);
@@ -96,7 +111,14 @@ void DLXGenerator::genAdd(Instruction* ins, string funcName) {
     code.push_back(add);
 
     if(regdest == 27) {
-        // int store = 
+        printf("adding store at add...\n");
+        int store = (36 << 26);
+        store |= (27 << 21);
+        store |= (30 << 16);
+        int offset = globals[ins->dest->name] & 0xffff;
+        store |= offset;
+        code.push_back(store);
+        printf("store at add: %d\n", store);
     }
 }
 
@@ -115,6 +137,16 @@ void DLXGenerator::genSub(Instruction* ins, string funcName) {
             reg1 = 27;
         }
     }
+    else if(reg1 == -1) {
+        printf("loading from memory...%d\n", globals[ins->op1->name]);
+        reg1 = 27;
+        int ld1 = (32 << 26);
+        ld1 |= (27 << 21);
+        ld1 |= (30 << 16);
+        int offset = globals[ins->op1->name] & 0xffff;
+        ld1 |= offset;
+        code.push_back(ld1);
+    }
     if(reg2 == 0) {
         if(ins->op2->type == Type::constVal) {
             int add2 = ins->op2->value>=0 ? (16 << 26) : (17 << 26);
@@ -125,17 +157,39 @@ void DLXGenerator::genSub(Instruction* ins, string funcName) {
             reg2 = 26;
         }
     }
+    else if(reg2 == -1) {
+        printf("need to load from memory...\n", globals[ins->op2->name]);
+        reg2 = 26;
+        int ld2 = (32 << 26);
+        ld2 |= (26 << 21);
+        ld2 |= (30 << 16);
+        int offset = globals[ins->op2->name] & 0xffff;
+        ld2 |= offset;
+        code.push_back(ld2);
+    }
     int sub = (1 << 26);
     if(regdest != -1) {
         sub |= (regdest << 21);
     }
     else {
+        regdest = 27;
         sub |= (27 << 21);
     }
     sub |= (reg1 << 16);
     sub |= reg2;
     printf("reg for sub after: %d %d %d\n", reg1, reg2, regdest);
     code.push_back(sub);
+
+    if(regdest == 27) {
+        printf("adding store at sub...\n");
+        int store = (36 << 26);
+        store |= (27 << 21);
+        store |= (30 << 16);
+        int offset = globals[ins->dest->name] & 0xffff;
+        store |= offset;
+        code.push_back(store);
+        printf("store at sub: %d\n", store);
+    }
 }
 
 void DLXGenerator::genMul(Instruction* ins, string funcName) {
@@ -155,8 +209,14 @@ void DLXGenerator::genMul(Instruction* ins, string funcName) {
         }
     }
     else if(reg1 == -1) {
+        printf("loading from memory...%d\n", globals[ins->op1->name]);
         reg1 = 27;
-
+        int ld1 = (32 << 26);
+        ld1 |= (27 << 21);
+        ld1 |= (30 << 16);
+        int offset = globals[ins->op1->name] & 0xffff;
+        ld1 |= offset;
+        code.push_back(ld1);
     }
     if(reg2 == 0) {
         if(ins->op2->type == Type::constVal) {
@@ -168,16 +228,38 @@ void DLXGenerator::genMul(Instruction* ins, string funcName) {
             reg2 = 26;
         }
     }
+    else if(reg2 == -1) {
+        printf("need to load from memory...\n", globals[ins->op2->name]);
+        reg2 = 26;
+        int ld2 = (32 << 26);
+        ld2 |= (26 << 21);
+        ld2 |= (30 << 16);
+        int offset = globals[ins->op2->name] & 0xffff;
+        ld2 |= offset;
+        code.push_back(ld2);
+    }
     int mul = (2 << 26);
     if(regdest != -1) {
         mul |= (regdest << 21);
     }
     else {
+        regdest = 27;
         mul |= (27 << 21);
     }
     mul |= (reg1 << 16);
     mul |= reg2;
     code.push_back(mul);
+
+    if(regdest == 27) {
+        printf("adding store at mul...\n");
+        int store = (36 << 26);
+        store |= (27 << 21);
+        store |= (30 << 16);
+        int offset = globals[ins->dest->name] & 0xffff;
+        store |= offset;
+        code.push_back(store);
+        printf("store at mul: %d\n", store);
+    }
 }
 
 void DLXGenerator::genDiv(Instruction* ins, string funcName) {
@@ -194,6 +276,16 @@ void DLXGenerator::genDiv(Instruction* ins, string funcName) {
             code.push_back(add1);
         }
     }
+    else if(reg1 == -1) {
+        printf("loading from memory...%d\n", globals[ins->op1->name]);
+        reg1 = 27;
+        int ld1 = (32 << 26);
+        ld1 |= (27 << 21);
+        ld1 |= (30 << 16);
+        int offset = globals[ins->op1->name] & 0xffff;
+        ld1 |= offset;
+        code.push_back(ld1);
+    }
     if(reg2 == 0) {
         if(ins->op2->type == Type::constVal) {
             reg2 = 26;
@@ -203,16 +295,38 @@ void DLXGenerator::genDiv(Instruction* ins, string funcName) {
             code.push_back(add2);
         }
     }
+    else if(reg2 == -1) {
+        printf("need to load from memory...\n", globals[ins->op2->name]);
+        reg2 = 26;
+        int ld2 = (32 << 26);
+        ld2 |= (26 << 21);
+        ld2 |= (30 << 16);
+        int offset = globals[ins->op2->name] & 0xffff;
+        ld2 |= offset;
+        code.push_back(ld2);
+    }
     int div = (3 << 26);
     if(regdest != -1) {
         div |= (regdest << 21);
     }
     else {
+        regdest = 27;
         div |= (27 << 21);
     }
     div |= (reg1 << 16);
     div |= reg2;
     code.push_back(div);
+
+    if(regdest == 27) {
+        printf("adding store at div...\n");
+        int store = (36 << 26);
+        store |= (27 << 21);
+        store |= (30 << 16);
+        int offset = globals[ins->dest->name] & 0xffff;
+        store |= offset;
+        code.push_back(store);
+        printf("store at div: %d\n", store);
+    }
 }
 
 void DLXGenerator::genMove(Instruction* ins, string funcName) {
@@ -224,17 +338,12 @@ void DLXGenerator::genMove(Instruction* ins, string funcName) {
         int ld = (32 << 26);
         ld |= (27 << 21);
         ld |= (30 << 16);
-        ld |= (65535 + globals[ins->op1->name]);
+        ld |= (globals[ins->op1->name] & 0xffff);
         code.push_back(ld);
     }
 
     if(reg2 == -1) {
-        int st = (36 << 26);
-        st |= (27 << 21);
-        st |= (30 << 16);
-        st |= (65535 + globals[ins->op2->name]);
-        code.push_back(st);
-        return;
+        reg2 = 26;
     }
 
     int add = (1 << 26);
@@ -243,6 +352,14 @@ void DLXGenerator::genMove(Instruction* ins, string funcName) {
     add &= 0xffff0000;
     printf("move res: %d\n", add);
     code.push_back(add);
+
+    if(reg2 == 26) {
+        int st = (36 << 26);
+        st |= (26 << 21);
+        st |= (30 << 16);
+        st |= (globals[ins->op2->name] & 0xffff);
+        code.push_back(st);
+    }
     return;
 }
 
@@ -267,7 +384,14 @@ void DLXGenerator::genWrite(Instruction* ins, string funcName) {
         code.push_back(wr);
     }
     else {
-        int reg = regallocs[funcName].count(ins->op1->name) ? regallocs[funcName][ins->op1->name] : 27;
+        int reg = regallocs[funcName][ins->op1->name] != -1 ? regallocs[funcName][ins->op1->name] : 27;
+        if(reg == 27) {
+            int ld = (32 << 26);
+            ld |= (27 << 21);
+            ld |= (30 << 16);
+            ld |= globals[ins->op1->name] & 0xffff;
+            code.push_back(ld);
+        }
         printf("op1 reg: %d\n", reg);
         int wr = 51 << 26;
         wr |= (reg << 16);
