@@ -53,6 +53,8 @@ public:
     regAlloc(SSABuilder builder, liveVarAnalysis LVA, int k);
 
     void color(string funcName, int k);
+    void addInstructionwithRes(Dot* dot, string name, string funcName, Instruction* ins);
+    void dump(SSABuilder builder, string name);
 };
 
 #endif

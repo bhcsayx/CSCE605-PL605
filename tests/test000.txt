@@ -8,5 +8,5 @@ var a,b,c,d;
     let a := 2*c+d;
     let a := a+c*b+d; 
     let d := 5 + 2 * 10 + 2;
-    call OutputNum(a)
+    call OutputNum(d)
 }.

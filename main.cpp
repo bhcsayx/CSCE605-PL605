@@ -97,14 +97,18 @@ int main(int argc, char *argv[]) {
 
     liveVarAnalysis LVA(builder);
     // string reg_name = "../graphs/";
-    string reg_name = "";
-    reg_name.append((dir));
-    reg_name.append("-LVA.dot");
-    LVA.dump2dot(builder, reg_name);
+    string lva_name = "";
+    lva_name.append((dir));
+    lva_name.append("-LVA.dot");
+    LVA.dump2dot(builder, lva_name);
 
     regAlloc alloc(builder, LVA, 3);
+    string reg_name = "";
+    reg_name.append((dir));
+    reg_name.append("-regAlloc.dot");
+    alloc.dump(builder, reg_name);
 
-    DLXGenerator dlxgen(alloc);
+    DLXGenerator dlxgen(builder, alloc);
     dlxgen.dlxgen(builder);
 
     string dlx_name = "";

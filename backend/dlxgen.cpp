@@ -19,33 +19,30 @@
 
 using namespace std;
 
-// void DLXGenerator::genAdd(Instruction* ins) {
-//     if(ins->op1->type == Type::constVal) {
-//         // handle unoptimized case
-//         int ld1 = 16 << 26;
-//         ld1 |= (27 << 21);
-//         ld1 |= ins->op1->val;
-//         code.push_back(ld1);
-//         // int tmp1 = regavail++;
-
-//         int dest = regallocs[curFunc][ins->dest->name] == -1 ? 26 : regallocs[curFunc][ins->dest->name];
-//         if(ins->op2->type == Type::constVal) {
-//             int ld2 = 16 << 26;
-//             ld2 |= (26 << 21);
-//             ld2 |= ins->op2->val;
-//             code.push_back(ld2);
-//         }
-
-//     }
-
-// }
-
-DLXGenerator::DLXGenerator(regAlloc alloc) {
+DLXGenerator::DLXGenerator(SSABuilder builder, regAlloc alloc) {
     for(auto res_iter: alloc.res) {
         auto funcName = res_iter.first;
         for(auto set_iter: res_iter.second) {
             auto valName = set_iter.first;
             regallocs[funcName][valName] = set_iter.second;
+        }
+    }
+
+    short int glob_offset = 0;
+    for(auto iter: builder.globalNames) {
+        for(auto s: *(iter.second)) {
+            if(!globals.count(s)) {
+                // printf("global: %s, %d\n", s.c_str(), glob_offset);
+                globals[s] = glob_offset--;
+            }
+        }
+    }
+    for(auto iter: regallocs) {
+        for(auto s: iter.second) {
+            if(!globals.count(s.first)) {
+                // printf("global: %s, %d\n", s.first.c_str(), glob_offset);
+                globals[s.first] = glob_offset--;
+            }
         }
     }
 }
@@ -54,43 +51,298 @@ DLXGenerator::~DLXGenerator() {
 
 }
 
-void DLXGenerator::genWrite(Instruction* ins) {
+void DLXGenerator::genAdd(Instruction* ins, string funcName) {
+    int reg1 = regallocs[funcName][ins->op1->name];
+    int reg2 = regallocs[funcName][ins->op2->name];
+    int regdest = regallocs[funcName].count(ins->dest->name) ? regallocs[funcName][ins->dest->name] : -1;
+    printf("reg for add: %d %d %d\n", reg1, reg2, regdest);
+
+    if(reg1 == 0) {
+        if(ins->op1->type == Type::constVal) {
+            int add1 = ins->op1->value>=0 ? (16 << 26) : (17 << 26);
+            add1 |= (26 << 21);
+            add1 |= ins->op1->value>=0 ? ins->op1->value : -(ins->op1->value);
+            code.push_back(add1);
+            printf("add ld1: %d\n", add1);
+            reg1 = 27;
+        }
+    }
+    else if(reg1 == -1) {
+        printf("need to load from memory...%d\n", globals[ins->op1->name]);
+    }
+    if(reg2 == 0) {
+        if(ins->op2->type == Type::constVal) {
+            int add2 = ins->op2->value>=0 ? (16 << 26) : (17 << 26);
+            add2 |= (26 << 21);
+            add2 |= ins->op2->value>=0 ? ins->op2->value : -(ins->op2->value);
+            printf("add ld2: %d\n", add2);
+            code.push_back(add2);
+            reg2 = 26;
+        }
+    }
+    else if(reg2 == -1) {
+        printf("need to load from memory...\n", globals[ins->op2->name]);
+    }
+    int add = 0;
+    if(regdest != -1) {
+        add |= (regdest << 21);
+    }
+    else {
+        add |= (27 << 21);
+    }
+    add |= (reg1 << 16);
+    add |= reg2;
+    printf("reg for add after: %d %d %d\n", reg1, reg2, regdest);
+    code.push_back(add);
+
+    if(regdest == 27) {
+        
+    }
+}
+
+void DLXGenerator::genSub(Instruction* ins, string funcName) {
+    int reg1 = regallocs[funcName][ins->op1->name];
+    int reg2 = regallocs[funcName][ins->op2->name];
+    int regdest = regallocs[funcName].count(ins->dest->name) ? regallocs[funcName][ins->dest->name] : -1;
+    printf("reg for sub: %d %d %d\n", reg1, reg2, regdest);
+    if(reg1 == 0) {
+        if(ins->op1->type == Type::constVal) {
+            int ld1 = 16 << 26;
+            ld1 |= (27 << 21);
+            ld1 |= ins->op1->value;
+            code.push_back(ld1);
+            reg1 = 27;
+        }
+    }
+    if(reg2 == 0) {
+        if(ins->op2->type == Type::constVal) {
+            int ld2 = 16 << 26;
+            ld2 |= (26 << 21);
+            ld2 |= ins->op2->value;
+            code.push_back(ld2);
+            reg2 = 26;
+        }
+    }
+    int sub = (1 << 26);
+    if(regdest != -1) {
+        sub |= (regdest << 21);
+    }
+    else {
+        sub |= (27 << 21);
+    }
+    sub |= (reg1 << 16);
+    sub |= reg2;
+    printf("reg for sub after: %d %d %d\n", reg1, reg2, regdest);
+    code.push_back(sub);
+}
+
+void DLXGenerator::genMul(Instruction* ins, string funcName) {
+    int reg1 = regallocs[funcName][ins->op1->name];
+    int reg2 = regallocs[funcName][ins->op2->name];
+    int regdest = regallocs[funcName].count(ins->dest->name) ? regallocs[funcName][ins->dest->name] : -1;
+    printf("reg for mul: %d %d %d\n", reg1, reg2, regdest);
+
+    if(reg1 == 0) {
+        if(ins->op1->type == Type::constVal) {
+            int ld1 = 16 << 26;
+            ld1 |= (27 << 21);
+            if(ins->op1->value < 0)
+                ins->op1->value = (65536 + (short int)ins->op1->value);
+            ld1 |= (ins->op1->value);
+            // printf("mul ld1: %d\n", ld1);
+            code.push_back(ld1);
+            reg1 = 27;
+        }
+    }
+    else if(reg1 == -1) {
+        reg1 = 27;
+
+    }
+    if(reg2 == 0) {
+        if(ins->op2->type == Type::constVal) {
+            int ld2 = 16 << 26;
+            ld2 |= (26 << 21);
+            if(ins->op2->value < 0)
+                ins->op2->value = (65536 + (short int)ins->op2->value);
+            ld2 |= ins->op2->value;
+            // printf("mul ld1: %d\n", ld2);
+            code.push_back(ld2);
+            reg2 = 26;
+        }
+    }
+    int mul = (2 << 26);
+    if(regdest != -1) {
+        mul |= (regdest << 21);
+    }
+    else {
+        mul |= (27 << 21);
+    }
+    mul |= (reg1 << 16);
+    mul |= reg2;
+    code.push_back(mul);
+}
+
+void DLXGenerator::genDiv(Instruction* ins, string funcName) {
+    int reg1 = regallocs[funcName][ins->op1->name];
+    int reg2 = regallocs[funcName][ins->op2->name];
+    int regdest = regallocs[funcName].count(ins->dest->name) ? regallocs[funcName][ins->dest->name] : -1;
+
+    if(reg1 == 0) {
+        if(ins->op1->type == Type::constVal) {
+            reg1 = 27;
+            int add1 = ins->op1->value>=0 ? (16 << 26) : (17 << 26);
+            add1 |= (27 << 21);
+            add1 |= ins->op1->value>=0 ? ins->op1->value : -(ins->op1->value);
+            code.push_back(add1);
+        }
+    }
+    if(reg2 == 0) {
+        if(ins->op2->type == Type::constVal) {
+            reg2 = 26;
+            int add2 = ins->op2->value>=0 ? (16 << 26) : (17 << 26);
+            add2 |= (26 << 21);
+            add2 |= ins->op2->value>=0 ? ins->op2->value : -(ins->op2->value);
+            code.push_back(add2);
+        }
+    }
+    int div = (3 << 26);
+    if(regdest != -1) {
+        div |= (regdest << 21);
+    }
+    else {
+        div |= (27 << 21);
+    }
+    div |= (reg1 << 16);
+    div |= reg2;
+    code.push_back(div);
+}
+
+void DLXGenerator::genMove(Instruction* ins, string funcName) {
+    int reg1 = regallocs[funcName][ins->op1->name];
+    int reg2 = regallocs[funcName][ins->op2->name];
+
+    if(reg1 == -1) {
+        reg1 = 27;
+        int ld = (32 << 26);
+        ld |= (27 << 21);
+        ld |= (30 << 16);
+        ld |= (65535 + globals[ins->op1->name]);
+        code.push_back(ld);
+    }
+
+    if(reg2 == -1) {
+        int st = (36 << 26);
+        st |= (27 << 21);
+        st |= (30 << 16);
+        st |= (65535 + globals[ins->op2->name]);
+        code.push_back(st);
+        return;
+    }
+
+    int add = (1 << 26);
+    add |= (reg2 << 21);
+    add |= (reg1 << 16);
+    add &= 0xffff0000;
+    printf("move res: %d\n", add);
+    code.push_back(add);
+    return;
+}
+
+void DLXGenerator::genRead(Instruction* ins, string funcName) {
+    int reg = regallocs[funcName].count(ins->dest->name) ? regallocs[funcName][ins->dest->name] : 27;
+    // printf("read into reg: %d\n", reg);
+    int rd = 50 << 26;
+    rd |= (reg << 21);
+    code.push_back(rd);
+}
+
+void DLXGenerator::genWrite(Instruction* ins, string funcName) {
     if(ins->op1->type == Type::constVal) {
         int ld = 16 << 26;
         ld |= (27 << 21);
         ld |= ins->op1->value;
         code.push_back(ld);
-
+        printf("write load: %d\n", ld);
         int wr = 51 << 26;
         wr |= (27 << 16);
+        printf("write wr: %d\n", wr);
+        code.push_back(wr);
+    }
+    else {
+        int reg = regallocs[funcName].count(ins->op1->name) ? regallocs[funcName][ins->op1->name] : 27;
+        printf("op1 reg: %d\n", reg);
+        int wr = 51 << 26;
+        wr |= (reg << 16);
+        printf("write wr: %d\n", wr);
         code.push_back(wr);
     }
 }
 
+void DLXGenerator::genWriteNL() {
+    code.push_back((53 << 26));
+}
+
 void DLXGenerator::dlxgen(SSABuilder builder) {
+    // init global area
+    printf("%d\n", sizeof(short int));
+    for(short int i=0;i<globals.size();i++) {
+        int stw = (36 << 26);
+        stw |= (30 << 16);
+        stw |= (-i & (65535));
+        code.push_back(stw);
+    }
+
     // generate main
     auto main_blocks = builder.blocks["main"];
     for(auto blk: *main_blocks) {
         for(auto ins: blk->instructions) {
             switch(ins->opcode) {
-                // case OpCode::ADD: {
-                //     genAdd(ins);
-                //     break;
-                // }
-                // case OpCode::SUB: {
-                //     genSub(ins);
-                //     break;
-                // }
-                // case OpCode::MUL: {
-                //     genMul(ins);
-                //     break;
-                // }
-                // case OpCode::DIV: {
-                //     genDiv(ins);
-                //     break;
-                // }
+                case OpCode::ADD: {
+                    printf("gen add\n");
+                    genAdd(ins, "main");
+                    printf("gen res: %d\n", code.back());
+                    break;
+                }
+                case OpCode::SUB: {
+                    printf("gen sub\n");
+                    genSub(ins, "main");
+                    printf("gen res: %d\n", code.back());
+                    break;
+                }
+                case OpCode::MUL: {
+                    printf("gen mul\n");
+                    genMul(ins, "main");
+                    printf("gen res: %d\n", code.back());
+                    break;
+                }
+                case OpCode::DIV: {
+                    printf("gen div\n");
+                    genDiv(ins, "main");
+                    printf("gen res: %d\n", code.back());
+                    break;
+                }
+                case OpCode::READ: {
+                    printf("gen read\n");
+                    genRead(ins, "main");
+                    printf("gen res: %d\n", code.back());
+                    break;
+                }
                 case OpCode::WRITE: {
-                    genWrite(ins);
+                    printf("gen write\n");
+                    genWrite(ins, "main");
+                    printf("gen res: %d\n", code.back());
+                    break;
+                }
+                case OpCode::WRITENL: {
+                    printf("gen writenl\n");
+                    genWriteNL();
+                    printf("gen res: %d\n", code.back());
+                    break;
+                }
+                case OpCode::MOVE: {
+                    printf("gen move\n");
+                    genMove(ins, "main");
+                    printf("gen res: %d\n", code.back());
                 }
                 default: {
                     break;

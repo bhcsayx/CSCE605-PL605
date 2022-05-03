@@ -24,19 +24,24 @@ class DLXGenerator {
 public:
     vector<int> code;
     map<string, map<string, int>> regallocs;
+    map<string, short int> globals;
     string curFunc;
     int regavail;
 
-    DLXGenerator(regAlloc alloc);
+    DLXGenerator(SSABuilder builder, regAlloc alloc);
     ~DLXGenerator();
     void dlxgen(SSABuilder builder);
 
-    // void genAdd(Instruction* ins);
-    // void genSub(Instruction* ins);
-    // void genMul(Instruction* ins);
-    // void genDiv(Instruction* ins);
+    void genAdd(Instruction* ins, string funcName);
+    void genSub(Instruction* ins, string funcName);
+    void genMul(Instruction* ins, string funcName);
+    void genDiv(Instruction* ins, string funcName);
 
-    void genWrite(Instruction* ins);
+    void genMove(Instruction* ins, string funcName);
+
+    void genRead(Instruction* ins, string funcName);
+    void genWrite(Instruction* ins, string funcName);
+    void genWriteNL();
 
     void dump(string name);
 };

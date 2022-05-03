@@ -1,5 +1,5 @@
 diGraph G { 
-main_BB0 [shape=record, label="<b>main_BB0| {0: WRITE 1}"];
+main_BB0 [shape=record, label="<b>main_BB0| {0: MUL #5 #10|1: ADD #2 %0|2: SUB %1 #3|3: MOVE %2 a|4: WRITE a|5: WRITENL }"];
 
 
 

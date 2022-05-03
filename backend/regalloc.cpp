@@ -461,17 +461,436 @@ regAlloc::regAlloc(SSABuilder builder, liveVarAnalysis LVA, int k) {
                 }
             }
         }
-        for(auto rig_iter=rig[funcName].begin(); rig_iter!=rig[funcName].end(); rig_iter++) {
-            auto key = rig_iter->first;
-            printf("rig key: %s\n", key.c_str());
-            for(auto value: *(rig_iter->second)) {
-                printf("\trig value: %s\n", value.c_str());
-            }
-        }
+        // for(auto rig_iter=rig[funcName].begin(); rig_iter!=rig[funcName].end(); rig_iter++) {
+        //     auto key = rig_iter->first;
+        //     printf("rig key: %s\n", key.c_str());
+        //     for(auto value: *(rig_iter->second)) {
+        //         printf("\trig value: %s\n", value.c_str());
+        //     }
+        // }
         color(funcName, k);
         iter++;
     }
 
+}
+
+void regAlloc::addInstructionwithRes(Dot* dot, string name, string funcName, Instruction* ins) {
+    // Node node = dot.nodes[name];
+    string res_str;
+
+    if(ins->opcode != OpCode::PHI) {
+        res_str.append(to_string((dot->counter)++));
+        res_str.append(": ");
+    }
+    // res_str.append(ins->dest->name.substr(1, ins->dest->name.length()));
+    // res_str.append(": ");
+    
+    switch (ins->opcode) {
+        case OpCode::NEG: {
+            res_str.append("NEG ");
+            break;
+        }
+        case OpCode::ADD: {
+            res_str.append("ADD ");
+            if(ins->op1->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op1->value));
+            }
+            else {
+                res_str.append(ins->op1->name.c_str());
+                printf("name: %s\n", name.c_str());
+                if(res[funcName].count(ins->op1->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op1->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op1->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            res_str.append(" ");
+            if(ins->op2->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op2->value));
+            }
+            else {
+                res_str.append(ins->op2->name.c_str());
+                if(res[funcName].count(ins->op2->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op2->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op2->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            break;
+        }
+        case OpCode::SUB: {
+            res_str.append("SUB ");
+            if(ins->op1->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op1->value));
+            }
+            else {
+                res_str.append(ins->op1->name.c_str());
+                if(res[funcName].count(ins->op1->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op1->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op1->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            res_str.append(" ");
+            if(ins->op2->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op2->value));
+            }
+            else {
+                res_str.append(ins->op2->name.c_str());
+                if(res[funcName].count(ins->op2->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op2->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op2->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            break;
+        }
+        case OpCode::MUL: {
+            res_str.append("MUL ");
+            if(ins->op1->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op1->value));
+            }
+            else {
+                res_str.append(ins->op1->name.c_str());
+                if(res[funcName].count(ins->op1->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op1->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op1->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            res_str.append(" ");
+            if(ins->op2->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op2->value));
+            }
+            else {
+                res_str.append(ins->op2->name.c_str());
+                if(res[funcName].count(ins->op2->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op2->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op2->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            break;
+        }
+        case OpCode::DIV: {
+            res_str.append("DIV ");
+            if(ins->op1->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op1->value));
+            }
+            else {
+                res_str.append(ins->op1->name.c_str());
+                if(res[funcName].count(ins->op1->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op1->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op1->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            res_str.append(" ");
+            if(ins->op2->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op2->value));
+            }
+            else {
+                res_str.append(ins->op2->name.c_str());
+                if(res[funcName].count(ins->op2->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op2->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op2->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            break;
+        }
+        case OpCode::CMP: {
+            res_str.append("CMP ");
+            if(ins->op1->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op1->value));
+            }
+            else {
+                res_str.append(ins->op1->name.c_str());
+                if(res[funcName].count(ins->op1->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op1->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op1->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            res_str.append(" ");
+            if(ins->op2->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op2->value));
+            }
+            else {
+                res_str.append(ins->op2->name.c_str());
+                if(res[funcName].count(ins->op2->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op2->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op2->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            break;
+        }
+        case OpCode::MOVE: {
+            res_str.append("MOVE ");
+            if(ins->op1->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op1->value));
+            }
+            else {
+                res_str.append(ins->op1->name.c_str());
+                if(res[funcName].count(ins->op1->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op1->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op1->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            res_str.append(" ");
+            if(ins->op2->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op2->value));
+            }
+            else {
+                res_str.append(ins->op2->name.c_str());
+                if(res[funcName].count(ins->op2->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op2->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op2->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            break;
+        }
+        case OpCode::PHI: {
+            res_str.append(ins->dest->name.c_str());
+            res_str.append(" = PHI ");
+            res_str.append(ins->op1->name.c_str());
+            res_str.append(" ");
+            res_str.append(ins->op2->name.c_str());
+            break;
+        }
+        case OpCode::END: {
+            res_str.append("END ");
+            break;
+        }
+        case OpCode::BRA: {
+            res_str.append("BRA [");
+            res_str.append(to_string(ins->op1->value));
+            res_str.append("]");
+            break;
+        }
+        case OpCode::BEQ: {
+            res_str.append("BEQ [");
+            res_str.append(to_string(ins->op2->value));
+            res_str.append("]");
+            break;
+        }
+        case OpCode::BNE: {
+            res_str.append("BNE [");
+            res_str.append(to_string(ins->op2->value));
+            res_str.append("]");
+            break;
+        }
+        case OpCode::BLT: {
+            res_str.append("BLT [");
+            // res_str.append(ins->op2->name);
+            res_str.append(to_string(ins->op2->value));
+            res_str.append("]");
+            break;
+        }
+        case OpCode::BGT: {
+            res_str.append("BGT [");
+            res_str.append(to_string(ins->op2->value));
+            res_str.append("]");
+            break;
+        }
+        case OpCode::BLE: {
+            res_str.append("BLE [");
+            res_str.append(to_string(ins->op2->value));
+            res_str.append("]");
+            break;
+        }
+        case OpCode::BGE: {
+            res_str.append("BGE [");
+            res_str.append(to_string(ins->op2->value));
+            res_str.append("]");
+            break;
+        }
+        case OpCode::READ: {
+            res_str.append("READ ");
+            break;
+        }
+        case OpCode::WRITE: {
+            res_str.append("WRITE ");
+            if(ins->op1->type == Type::constVal) {
+                res_str.append("#");
+                res_str.append(to_string(ins->op1->value));
+            }
+            else {
+                res_str.append(ins->op1->name.c_str());
+                if(res[funcName].count(ins->op1->name)) {
+                    res_str.append("[");
+                    if(res[funcName][ins->op1->name] != -1)
+                        res_str.append(to_string(res[funcName][ins->op1->name]));
+                    else
+                        res_str.append("NR");
+                    res_str.append("]");
+                }
+            }
+            break;
+        }
+        case OpCode::WRITENL: {
+            res_str.append("WRITENL ");
+            break;
+        }
+        case OpCode::CALL: {
+            res_str.append("CALL ");
+            res_str.append(ins->op1->name);
+            for(auto arg: ins->callArgs) {
+                res_str.append(" ");
+                if(arg->type == Type::constVal) {
+                    res_str.append("#");
+                    res_str.append(to_string(arg->value));
+                }
+                else
+                    res_str.append(arg->name);
+            }
+            break;
+        }
+        case OpCode::RET: {
+            res_str.append("RET ");
+            if(ins->op1->type != Type::empty) {
+                if(ins->op1->type == Type::constVal) {
+                    res_str.append("#");
+                    res_str.append(to_string(ins->op1->value));
+                }
+            else
+                res_str.append(ins->op1->name.c_str());
+            }
+            break;
+        }
+        
+    }
+    // if(ins->op1->type != Type::constVal && ins->op1->type != Type::empty) {
+    //     res_str.append(" ");
+    //     res_str.append(ins->op1->name);
+    //     res_str.append("[");
+    //     if(res[funcName][ins->op1->name] != -1)
+    //         res_str.append(to_string(res[funcName][ins->op1->name]));
+    //     else
+    //         res_str.append("NR");
+    //     res_str.append("] ");
+    // }
+    // if(ins->op2->type != Type::constVal && ins->op2->type != Type::empty) {
+    //     res_str.append(" ");
+    //     res_str.append(ins->op2->name);
+    //     res_str.append("[");
+    //     if(res[funcName][ins->op2->name] != -1)
+    //         res_str.append(to_string(res[name][ins->op2->name]));
+    //     else
+    //         res_str.append("NR");
+    //     res_str.append("] ");
+    // }
+
+    res_str.append("|");
+
+    dot->nodes[name].label.append(res_str.c_str());
+}
+
+void regAlloc::dump(SSABuilder builder, string name) {
+    Dot dot;
+    for(auto funcName: builder.funcNames) {
+        // printf("funcname: %s\n", funcName.c_str());
+        // for(auto blk: *(blks_iter->second)) {
+        for(auto blk: *(builder.blocks[funcName])) {
+            string name = funcName;
+            name.append("_BB"); name.append(to_string(blk->index));
+            dot.addNode(name);
+            for(auto ins: blk->instructions)
+                addInstructionwithRes(&dot, name, funcName, ins);
+            if(blk->successors.size() > 0) {
+                if(blk->successors.size() == 2) {
+                    string br1 = funcName;
+                    br1.append("_BB"); br1.append(to_string(blk->successors[0]));
+                    dot.addCFGEdge(name, br1, "branch");
+                    string br2 = funcName;
+                    br2.append("_BB"); br2.append(to_string(blk->successors[1]));
+                    dot.addCFGEdge(name, br2, "fall-through");
+                }
+                else {
+                    string br1 = funcName;
+                    br1.append("_BB"); br1.append(to_string(blk->successors[0]));
+                    dot.addCFGEdge(name, br1, "fall-through");
+                }
+            }
+        }
+
+        for(auto dom: builder.DomTrees[funcName]) {
+            string lname = funcName;
+            lname.append("_BB"); lname.append(to_string(dom.first->index));
+            if(dom.second == NULL)
+                continue;
+            for(auto r: *(dom.second)) {
+                string rname = funcName;
+                rname.append("_BB"); rname.append(to_string(r->index));
+                dot.addDomEdge(lname, rname);
+            }
+        }
+
+        for(auto df: builder.DFTrees[funcName]) {
+            string lname = funcName;
+            lname.append("_BB"); lname.append(to_string(df.first->index));
+            if(df.second == NULL)
+                continue;
+            for(auto r: *(df.second)) {
+                string rname = funcName;
+                rname.append("_BB"); rname.append(to_string(r->index));
+                dot.addDFEdge(lname, rname);
+            }
+        }
+        // blks_iter++;
+    }
+    dot.dump(name);
 }
 
 void regAlloc::color(string funcName, int k) {
@@ -527,7 +946,7 @@ void regAlloc::color(string funcName, int k) {
         deleted[*(order_iter)] = false;
     }
 
-    for(auto s: order[funcName]) {
-        printf("reg alloc for %s: %d\n", s.c_str(), res[funcName][s]);
-    }
+    // for(auto s: order[funcName]) {
+    //     printf("reg alloc for %s: %d\n", s.c_str(), res[funcName][s]);
+    // }
 }

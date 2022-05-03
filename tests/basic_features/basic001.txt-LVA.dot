@@ -1,0 +1,6 @@
+diGraph G { 
+main_BB0 [shape=record, label="<b>main_BB0| {0: ADD #5 #2 preAnalysis=\{%0 A^-1 a_0^-1 outputnum^-1 \} postAnalysis=\{A^-1 a_0^-1 outputnum^-1 \}|1: MOVE %0 a^0 preAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \} postAnalysis=\{%0 A^-1 a_0^-1 outputnum^-1 \}|2: WRITE a^0 preAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \} postAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \}|3: WRITENL  preAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \} postAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \}|4: WRITE a_0^-1 preAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \} postAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \}|5: WRITENL  preAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \} postAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \}|6: WRITE A^-1 preAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \} postAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \}|7: WRITENL  preAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \} postAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \}|8: WRITE outputnum^-1 preAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \} postAnalysis=\{A^-1 a^0 a_0^-1 outputnum^-1 \}}"];
+
+
+
+}

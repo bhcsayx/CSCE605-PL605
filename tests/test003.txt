@@ -1,4 +1,7 @@
 main
+var a;
 {
-    call OutputNum(1);
+    let a := 2 + 5 * 10 - 3;
+    call OutputNum(a);
+    call OutputNewLine();
 }.
