@@ -60,10 +60,10 @@ void DLXGenerator::genAdd(Instruction* ins, string funcName) {
     if(reg1 == 0) {
         if(ins->op1->type == Type::constVal) {
             int add1 = ins->op1->value>=0 ? (16 << 26) : (17 << 26);
-            add1 |= (26 << 21);
+            add1 |= (27 << 21);
             add1 |= ins->op1->value>=0 ? ins->op1->value : -(ins->op1->value);
             code.push_back(add1);
-            printf("add ld1: %d\n", add1);
+            // printf("add ld1: %d\n", add1);
             reg1 = 27;
         }
     }
@@ -96,7 +96,7 @@ void DLXGenerator::genAdd(Instruction* ins, string funcName) {
     code.push_back(add);
 
     if(regdest == 27) {
-        
+        // int store = 
     }
 }
 
@@ -107,19 +107,21 @@ void DLXGenerator::genSub(Instruction* ins, string funcName) {
     printf("reg for sub: %d %d %d\n", reg1, reg2, regdest);
     if(reg1 == 0) {
         if(ins->op1->type == Type::constVal) {
-            int ld1 = 16 << 26;
-            ld1 |= (27 << 21);
-            ld1 |= ins->op1->value;
-            code.push_back(ld1);
+            int add1 = ins->op1->value>=0 ? (16 << 26) : (17 << 26);
+            add1 |= (27 << 21);
+            add1 |= ins->op1->value>=0 ? ins->op1->value : -(ins->op1->value);
+            code.push_back(add1);
+            // printf("add ld1: %d\n", add1);
             reg1 = 27;
         }
     }
     if(reg2 == 0) {
         if(ins->op2->type == Type::constVal) {
-            int ld2 = 16 << 26;
-            ld2 |= (26 << 21);
-            ld2 |= ins->op2->value;
-            code.push_back(ld2);
+            int add2 = ins->op2->value>=0 ? (16 << 26) : (17 << 26);
+            add2 |= (26 << 21);
+            add2 |= ins->op2->value>=0 ? ins->op2->value : -(ins->op2->value);
+            printf("add ld2: %d\n", add2);
+            code.push_back(add2);
             reg2 = 26;
         }
     }
@@ -144,13 +146,11 @@ void DLXGenerator::genMul(Instruction* ins, string funcName) {
 
     if(reg1 == 0) {
         if(ins->op1->type == Type::constVal) {
-            int ld1 = 16 << 26;
-            ld1 |= (27 << 21);
-            if(ins->op1->value < 0)
-                ins->op1->value = (65536 + (short int)ins->op1->value);
-            ld1 |= (ins->op1->value);
-            // printf("mul ld1: %d\n", ld1);
-            code.push_back(ld1);
+            int add1 = ins->op1->value>=0 ? (16 << 26) : (17 << 26);
+            add1 |= (27 << 21);
+            add1 |= ins->op1->value>=0 ? ins->op1->value : -(ins->op1->value);
+            code.push_back(add1);
+            // printf("add ld1: %d\n", add1);
             reg1 = 27;
         }
     }
@@ -160,13 +160,11 @@ void DLXGenerator::genMul(Instruction* ins, string funcName) {
     }
     if(reg2 == 0) {
         if(ins->op2->type == Type::constVal) {
-            int ld2 = 16 << 26;
-            ld2 |= (26 << 21);
-            if(ins->op2->value < 0)
-                ins->op2->value = (65536 + (short int)ins->op2->value);
-            ld2 |= ins->op2->value;
-            // printf("mul ld1: %d\n", ld2);
-            code.push_back(ld2);
+            int add2 = ins->op2->value>=0 ? (16 << 26) : (17 << 26);
+            add2 |= (26 << 21);
+            add2 |= ins->op2->value>=0 ? ins->op2->value : -(ins->op2->value);
+            // printf("add ld2: %d\n", add2);
+            code.push_back(add2);
             reg2 = 26;
         }
     }

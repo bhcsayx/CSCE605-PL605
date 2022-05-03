@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
     lva_name.append("-LVA.dot");
     LVA.dump2dot(builder, lva_name);
 
-    regAlloc alloc(builder, LVA, 3);
+    regAlloc alloc(builder, LVA, 5);
     string reg_name = "";
     reg_name.append((dir));
     reg_name.append("-regAlloc.dot");
