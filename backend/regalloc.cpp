@@ -34,9 +34,9 @@ liveVarAnalysis::liveVarAnalysis(SSABuilder builder) {
     workList.clear();
     
     for(auto funcName: builder.funcNames) {
-        printf("global size: %d\n", builder.globalNames[funcName]->size());
+        // printf("global size: %d\n", builder.globalNames[funcName]->size());
         for(auto v: *(builder.globalNames[funcName])) {
-            printf("varname: %s\n", v.c_str());
+            // printf("varname: %s\n", v.c_str());
         }
     }
 
@@ -109,13 +109,13 @@ void liveVarAnalysis::computeBlock(string funcName, SSABuilder builder, BasicBlo
 }
 
 void liveVarAnalysis::init(string funcName, SSABuilder builder) {
-    printf("init func:%s\n", funcName.c_str());
+    // printf("init func:%s\n", funcName.c_str());
     workList.clear();
     for(auto block: *(builder.blocks[funcName])) {
         if(block->successors.size() == 0) {
             workList.push_back(block);
             for(auto s: *(builder.globalNames[funcName])) {
-                printf("init var: %s\n", s.c_str());
+                // printf("init var: %s\n", s.c_str());
                 entry[funcName][block]->insert(s);
             }
         }
@@ -498,7 +498,7 @@ void regAlloc::addInstructionwithRes(Dot* dot, string name, string funcName, Ins
             }
             else {
                 res_str.append(ins->op1->name.c_str());
-                printf("name: %s\n", name.c_str());
+                // printf("name: %s\n", name.c_str());
                 if(res[funcName].count(ins->op1->name)) {
                     res_str.append("[");
                     if(res[funcName][ins->op1->name] != -1)

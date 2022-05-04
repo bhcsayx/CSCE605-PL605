@@ -17,3 +17,8 @@ make
 cd runtime
 java TestCompiler <code file> <data file>
 ```
+### Arguments
+-a: Arithmetic Simplification
+-c: Constant Folding
+-o: Orphan Function Elimination
+-r <int>: Number of register for allocation

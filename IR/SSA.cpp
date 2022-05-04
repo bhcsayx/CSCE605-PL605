@@ -291,7 +291,7 @@ void SSABuilder::renameVarinBlk(string funcName, string name, BasicBlock* blk) {
     for(auto ins: blk->instructions) {
         if(ins->opcode == OpCode::PHI) {
             if(ins->dest->name == name) {
-                printf("phi of var %s\n", name.c_str());
+                // printf("phi of var %s\n", name.c_str());
                 counter[name]++;
                 ins->dest->name.append("^");
                 ins->dest->name.append(to_string(counter[name]));
@@ -464,12 +464,12 @@ void SSABuilder::transform() {
                 if(ins->opcode == OpCode::WRITE) {
                     if(ins->op1->type != Type::constVal) {
                         globalNames[funcName]->push_back(ins->op1->name);
-                        printf("write: %s\n", ins->op1->name.c_str());
+                        // printf("write: %s\n", ins->op1->name.c_str());
                     }
                 }
                 if(ins->opcode == OpCode::RET) {
                     if(ins->op1->name != "") {
-                        printf("adding return %s\n", ins->op1->name.c_str());
+                        // printf("adding return %s\n", ins->op1->name.c_str());
                         globalNames[funcName]->push_back(ins->op1->name);
                     }
                 }

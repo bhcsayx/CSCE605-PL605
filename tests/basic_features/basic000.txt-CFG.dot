@@ -1,0 +1,6 @@
+diGraph G { 
+main_BB0 [shape=record, label="<b>main_BB0| {0: MUL #2 #10|1: ADD #5 %0|2: SUB %1 #2|3: MOVE %2 d|4: MUL #-2 #-10|5: ADD #5 %4|6: ADD %5 #2|7: MOVE %6 b|8: ADD b c|9: ADD %8 d|10: MOVE %9 a|11: MUL a a|12: MUL b b|13: ADD %11 %12|14: MOVE %13 b|15: MUL #2 b|16: ADD #5 %15|17: MOVE %16 a|18: MUL #2 c|19: ADD %18 d|20: MOVE %19 a|21: SUB d d|22: ADD %21 #1|23: DIV c %22|24: SUB a %23|25: MOVE %24 a|26: WRITE a|27: WRITENL |28: WRITE b}"];
+
+
+
+}

@@ -549,7 +549,7 @@ struct computationAST* parse(struct tokenStream stream) {
         }
         cur->next = NULL;
     }
-    printf("funcdecl finished\n");
+    // printf("funcdecl finished\n");
 
     expect(stream, &parseCursor, beginToken);
     root->stats = parseStmtSequence(stream);

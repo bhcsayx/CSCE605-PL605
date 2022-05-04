@@ -413,7 +413,7 @@ void codegen(struct varDeclAST* vars, Module& mod, bool is_global=false) {
             if(find(mod.globalNames.begin(), mod.globalNames.end(), name) == mod.globalNames.end())
                 mod.globalNames.push_back(name);
         }
-        printf("adding var: %s\n", name.c_str());
+        // printf("adding var: %s\n", name.c_str());
         int value = -1;
         glob.symbolTable.insertSymbol(name, value);
         cur = cur->next;
