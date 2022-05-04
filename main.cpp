@@ -17,6 +17,10 @@
 #include "backend/regalloc.h"
 #include "backend/dlxgen.h"
 
+#include "optimization/arithsim.h"
+#include "optimization/constfold.h"
+#include "optimization/orphanfunc.h"
+
 int main(int argc, char *argv[]) {
 
     if(argc < 2) {
@@ -94,6 +98,26 @@ int main(int argc, char *argv[]) {
     //         printf("glob var: %s\n", s.c_str());
     //     }
     // }
+    // arithSim sim;
+    // sim.run(builder);
+    // string sim_name = "";
+    // sim_name.append((dir));
+    // sim_name.append("-arithSim.dot");
+    // sim.dump(builder, sim_name);
+
+    // constFold fold;
+    // fold.run(builder);
+    // string fold_name = "";
+    // fold_name.append((dir));
+    // fold_name.append("-constFold.dot");
+    // fold.dump(builder, fold_name);
+
+    // orphanFunc orf;
+    // orf.run(builder);
+    // string orf_name = "";
+    // orf_name.append((dir));
+    // orf_name.append("-orphanFunc.dot");
+    // orf.dump(builder, orf_name);
 
     liveVarAnalysis LVA(builder);
     // string reg_name = "../graphs/";
@@ -102,7 +126,7 @@ int main(int argc, char *argv[]) {
     lva_name.append("-LVA.dot");
     LVA.dump2dot(builder, lva_name);
 
-    regAlloc alloc(builder, LVA, 3);
+    regAlloc alloc(builder, LVA, 5);
     string reg_name = "";
     reg_name.append((dir));
     reg_name.append("-regAlloc.dot");

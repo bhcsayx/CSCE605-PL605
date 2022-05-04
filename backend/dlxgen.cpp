@@ -406,13 +406,13 @@ void DLXGenerator::genWriteNL() {
 
 void DLXGenerator::dlxgen(SSABuilder builder) {
     // init global area
-    printf("%d\n", sizeof(short int));
-    for(short int i=0;i<globals.size();i++) {
-        int stw = (36 << 26);
-        stw |= (30 << 16);
-        stw |= (-i & (65535));
-        code.push_back(stw);
-    }
+    // printf("%d\n", sizeof(short int));
+    // for(short int i=0;i<globals.size();i++) {
+    //     int stw = (36 << 26);
+    //     stw |= (30 << 16);
+    //     stw |= (-i & (65535));
+    //     code.push_back(stw);
+    // }
 
     // generate main
     auto main_blocks = builder.blocks["main"];

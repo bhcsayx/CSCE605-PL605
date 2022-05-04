@@ -1,7 +1,0 @@
-diGraph G { 
-getTwoSum_BB0 [shape=record, label="<b>getTwoSum_BB0| {0: READ |1: MOVE %0 i^0|2: ADD i^0 n^-1|3: MOVE %2 k^0|4: RET k^0}"];
-main_BB0 [shape=record, label="<b>main_BB0| {5: READ |6: MOVE %5 input^0|7: CALL getTwoSum input|8: MOVE %7 myVar^0|9: WRITE myVar^0|10: WRITENL }"];
-
-
-
-}

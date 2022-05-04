@@ -1,0 +1,8 @@
+main
+var a;
+{
+    let a := 1 + 0;
+    let a := 2 * 1;
+    let a := 3 * 0;
+    let a := 4
+}.
