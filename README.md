@@ -1,16 +1,16 @@
-Build
+# Build
 ```
 mkdir build && cd build
 cmake ../
 make
 ```
 
-Run
+# Run
 ```
 ./pl605 <filename>
 ```
 
-Execute
+# Execute
 ```
 cd runtime
 java TestCompiler <code file> <data file>
