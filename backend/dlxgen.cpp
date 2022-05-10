@@ -627,9 +627,6 @@ void DLXGenerator::dlxgen(SSABuilder builder) {
     //     }
     // }
 
-    int ret = (49 << 26);
-    code.push_back(ret);
-
     // printf("dumping code: ");
     // for(auto i: code) {
     //     printf("%d ", i);

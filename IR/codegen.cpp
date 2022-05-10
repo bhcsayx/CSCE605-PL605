@@ -295,17 +295,17 @@ Value* codegen(struct funcCallAST* call, BasicBlock* block) {
 }
 
 BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
-    codegen(branch->cond, block, func.blocks.size());
+    // codegen(branch->cond, block, func.blocks.size());
     // printf("rel finished\n");
-    BasicBlock* left = new BasicBlock();
-    func.addBasicBlock(left);
-    BasicBlock* left_end =  codegen(branch->br1, func, left);
+    // BasicBlock* left = new BasicBlock();
+    // func.addBasicBlock(left);
+    // BasicBlock* left_end =  codegen(branch->br1, func, left);
     BasicBlock* right = NULL;
     BasicBlock* right_end = NULL;
     // printf("br1 finished\n");
     // BasicBlock* left = func.blocks[func.blocks.size()-1];
-    block->successors.push_back(left->index);
-    left->predecessors.push_back(block->index);
+    // block->successors.push_back(left->index);
+    // left->predecessors.push_back(block->index);
     if(branch->br2) {
         // printf("generating right...\n");
         right = new BasicBlock();
@@ -315,19 +315,29 @@ BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
         right_end = codegen(branch->br2, func, right);
         // BasicBlock* right = func.blocks[func.blocks.size()-1];
     }
+
     BasicBlock* join = new BasicBlock();
     func.addBasicBlock(join);
-    if(right) {
-        auto last_left = (left_end->instructions[left_end->instructions.size()-1])->opcode;
-        if(last_left != OpCode::RET) {
-            left_end->successors.push_back(join->index);
-            join->predecessors.push_back(left_end->index);
-        }
 
+    BasicBlock* left = new BasicBlock();
+    func.addBasicBlock(left);
+    codegen(branch->cond, block, func.blocks.size()-1);
+    BasicBlock* left_end =  codegen(branch->br1, func, left);
+    // block->successors.push_back(left->index);
+    // left->predecessors.push_back(block->index);
+
+    // BasicBlock* join = new BasicBlock();
+    // func.addBasicBlock(join);
+    if(right) {
         auto last_right = (left_end->instructions[left_end->instructions.size()-1])->opcode;
         if(last_right != OpCode::RET) {
             right_end->successors.push_back(join->index);
             join->predecessors.push_back(right->index);
+        }
+        auto last_left = (left_end->instructions[left_end->instructions.size()-1])->opcode;
+        if(last_left != OpCode::RET) {
+            left_end->successors.push_back(join->index);
+            join->predecessors.push_back(left_end->index);
         }
     }
     else {
@@ -340,6 +350,9 @@ BasicBlock* codegen(struct brhAST* branch, Function& func, BasicBlock* block) {
             join->predecessors.push_back(left_end->index);
         }
     }
+    block->successors.push_back(left->index);
+    left->predecessors.push_back(block->index);
+
     return join;
 }
 

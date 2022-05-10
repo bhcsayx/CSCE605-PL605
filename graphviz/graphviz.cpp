@@ -209,10 +209,10 @@ void dump2dot(SSABuilder builder, string name) {
                 if(blk->successors.size() == 2) {
                     string br1 = funcName;
                     br1.append("_BB"); br1.append(to_string(blk->successors[0]));
-                    dot.addCFGEdge(name, br1, "branch");
+                    dot.addCFGEdge(name, br1, "fall-through");
                     string br2 = funcName;
                     br2.append("_BB"); br2.append(to_string(blk->successors[1]));
-                    dot.addCFGEdge(name, br2, "fall-through");
+                    dot.addCFGEdge(name, br2, "branch");
                 }
                 else {
                     string br1 = funcName;

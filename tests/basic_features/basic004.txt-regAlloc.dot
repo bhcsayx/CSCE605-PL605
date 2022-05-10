@@ -1,0 +1,6 @@
+diGraph G { 
+main_BB0 [shape=record, label="<b>main_BB0| {0: READ |1: MOVE %0[1] x^0[1]|2: MUL x^0[1] #3|3: ADD x^0[1] %2[2]|4: WRITE %3[1]}"];
+
+
+
+}

@@ -1,0 +1,6 @@
+diGraph G { 
+main_BB0 [shape=record, label="<b>main_BB0| {0: READ  preAnalysis=\{%0 \} postAnalysis=\{\}|1: MOVE %0 x^0 preAnalysis=\{x^0 \} postAnalysis=\{%0 \}|2: MUL x^0 #3 preAnalysis=\{%2 x^0 \} postAnalysis=\{x^0 \}|3: ADD x^0 %2 preAnalysis=\{%3 \} postAnalysis=\{%2 x^0 \}|4: WRITE %3 preAnalysis=\{%3 \} postAnalysis=\{%3 \}}"];
+
+
+
+}
