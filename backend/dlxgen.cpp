@@ -329,6 +329,85 @@ void DLXGenerator::genDiv(Instruction* ins, string funcName) {
     }
 }
 
+void DLXGenerator::genCmp(Instruction* ins, string funcName) {
+    int reg1 = regallocs[funcName][ins->op1->name];
+    int reg2 = regallocs[funcName][ins->op2->name];
+    int regdest = regallocs[funcName].count(ins->dest->name) ? regallocs[funcName][ins->dest->name] : -1;
+    // printf("reg for mul: %d %d %d\n", reg1, reg2, regdest);
+
+    if(reg1 == 0) {
+        if(ins->op1->type == Type::constVal) {
+            int add1 = ins->op1->value>=0 ? (16 << 26) : (17 << 26);
+            add1 |= (27 << 21);
+            add1 |= ins->op1->value>=0 ? ins->op1->value : -(ins->op1->value);
+            code.push_back(add1);
+            // printf("add ld1: %d\n", add1);
+            reg1 = 27;
+        }
+    }
+    else if(reg1 == -1) {
+        // printf("loading from memory...%d\n", globals[ins->op1->name]);
+        reg1 = 27;
+        int ld1 = (32 << 26);
+        ld1 |= (27 << 21);
+        ld1 |= (30 << 16);
+        int offset = globals[ins->op1->name] & 0xffff;
+        ld1 |= offset;
+        code.push_back(ld1);
+    }
+    if(reg2 == 0) {
+        if(ins->op2->type == Type::constVal) {
+            int add2 = ins->op2->value>=0 ? (16 << 26) : (17 << 26);
+            add2 |= (26 << 21);
+            add2 |= ins->op2->value>=0 ? ins->op2->value : -(ins->op2->value);
+            // printf("add ld2: %d\n", add2);
+            code.push_back(add2);
+            reg2 = 26;
+        }
+    }
+    else if(reg2 == -1) {
+        // printf("need to load from memory...\n", globals[ins->op2->name]);
+        reg2 = 26;
+        int ld2 = (32 << 26);
+        ld2 |= (26 << 21);
+        ld2 |= (30 << 16);
+        int offset = globals[ins->op2->name] & 0xffff;
+        ld2 |= offset;
+        code.push_back(ld2);
+    }
+    int cmp = (5 << 26);
+    if(regdest != -1) {
+        cmp |= (regdest << 21);
+    }
+    else {
+        regdest = 27;
+        cmp |= (27 << 21);
+    }
+    cmp |= (reg1 << 16);
+    cmp |= reg2;
+    code.push_back(cmp);
+
+    if(regdest == 27) {
+        // printf("adding store at cmp...\n");
+        int store = (36 << 26);
+        store |= (27 << 21);
+        store |= (30 << 16);
+        int offset = globals[ins->dest->name] & 0xffff;
+        store |= offset;
+        code.push_back(store);
+        // printf("store at cmp: %d\n", store);
+    }
+}
+
+void DLXGenerator::genRet(Instruction* ins, string funcName) {
+    if(ins->op1->type != Type::empty) {
+
+    }
+    else {
+
+    }
+}
+
 void DLXGenerator::genMove(Instruction* ins, string funcName) {
     int reg1 = regallocs[funcName][ins->op1->name];
     int reg2 = regallocs[funcName][ins->op2->name];
@@ -404,6 +483,77 @@ void DLXGenerator::genWriteNL() {
     code.push_back((53 << 26));
 }
 
+void DLXGenerator::dlxgenBlk(SSABuilder builder, BasicBlock* block, string funcName, int index) {
+    blkstart[index] = code.size();
+    for(auto ins: block->instructions) {
+        switch(ins->opcode) {
+            case OpCode::ADD: {
+                // printf("gen add\n");
+                genAdd(ins, funcName);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::SUB: {
+                // printf("gen sub\n");
+                genSub(ins, funcName);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::MUL: {
+                // printf("gen mul\n");
+                genMul(ins, funcName);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::DIV: {
+                // printf("gen div\n");
+                genDiv(ins, funcName);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::READ: {
+                // printf("gen read\n");
+                genRead(ins, funcName);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::WRITE: {
+                // printf("gen write\n");
+                genWrite(ins, funcName);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::WRITENL: {
+                // printf("gen writenl\n");
+                genWriteNL();
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::MOVE: {
+                // printf("gen move\n");
+                genMove(ins, funcName);
+                // printf("gen res: %d\n", code.back());
+            }
+            case OpCode::CMP: {
+                // printf("gen move\n");
+                genCmp(ins, funcName);
+                // printf("gen res: %d\n", code.back());
+            }
+            default: {
+                break;
+            }
+        }
+    }
+}
+
+void DLXGenerator::dlxgenFunc(SSABuilder builder, vector<BasicBlock*>* blocks, string funcName) {
+    int blkIndex = 0;
+    for(auto blk: *blocks) {
+        dlxgenBlk(builder, blk, funcName, blkIndex);
+        blkIndex++;
+    }
+}
+
 void DLXGenerator::dlxgen(SSABuilder builder) {
     // init global area
     // printf("%d\n", sizeof(short int));
@@ -416,62 +566,66 @@ void DLXGenerator::dlxgen(SSABuilder builder) {
 
     // generate main
     auto main_blocks = builder.blocks["main"];
-    for(auto blk: *main_blocks) {
-        for(auto ins: blk->instructions) {
-            switch(ins->opcode) {
-                case OpCode::ADD: {
-                    // printf("gen add\n");
-                    genAdd(ins, "main");
-                    // printf("gen res: %d\n", code.back());
-                    break;
-                }
-                case OpCode::SUB: {
-                    // printf("gen sub\n");
-                    genSub(ins, "main");
-                    // printf("gen res: %d\n", code.back());
-                    break;
-                }
-                case OpCode::MUL: {
-                    // printf("gen mul\n");
-                    genMul(ins, "main");
-                    // printf("gen res: %d\n", code.back());
-                    break;
-                }
-                case OpCode::DIV: {
-                    // printf("gen div\n");
-                    genDiv(ins, "main");
-                    // printf("gen res: %d\n", code.back());
-                    break;
-                }
-                case OpCode::READ: {
-                    // printf("gen read\n");
-                    genRead(ins, "main");
-                    // printf("gen res: %d\n", code.back());
-                    break;
-                }
-                case OpCode::WRITE: {
-                    // printf("gen write\n");
-                    genWrite(ins, "main");
-                    // printf("gen res: %d\n", code.back());
-                    break;
-                }
-                case OpCode::WRITENL: {
-                    // printf("gen writenl\n");
-                    genWriteNL();
-                    // printf("gen res: %d\n", code.back());
-                    break;
-                }
-                case OpCode::MOVE: {
-                    // printf("gen move\n");
-                    genMove(ins, "main");
-                    // printf("gen res: %d\n", code.back());
-                }
-                default: {
-                    break;
-                }
-            }
-        }
-    }
+    dlxgenFunc(builder, main_blocks, "main");
+    // add return 0 for main.
+    code.push_back((49 << 26));
+
+    // for(auto blk: *main_blocks) {
+    //     for(auto ins: blk->instructions) {
+    //         switch(ins->opcode) {
+    //             case OpCode::ADD: {
+    //                 // printf("gen add\n");
+    //                 genAdd(ins, "main");
+    //                 // printf("gen res: %d\n", code.back());
+    //                 break;
+    //             }
+    //             case OpCode::SUB: {
+    //                 // printf("gen sub\n");
+    //                 genSub(ins, "main");
+    //                 // printf("gen res: %d\n", code.back());
+    //                 break;
+    //             }
+    //             case OpCode::MUL: {
+    //                 // printf("gen mul\n");
+    //                 genMul(ins, "main");
+    //                 // printf("gen res: %d\n", code.back());
+    //                 break;
+    //             }
+    //             case OpCode::DIV: {
+    //                 // printf("gen div\n");
+    //                 genDiv(ins, "main");
+    //                 // printf("gen res: %d\n", code.back());
+    //                 break;
+    //             }
+    //             case OpCode::READ: {
+    //                 // printf("gen read\n");
+    //                 genRead(ins, "main");
+    //                 // printf("gen res: %d\n", code.back());
+    //                 break;
+    //             }
+    //             case OpCode::WRITE: {
+    //                 // printf("gen write\n");
+    //                 genWrite(ins, "main");
+    //                 // printf("gen res: %d\n", code.back());
+    //                 break;
+    //             }
+    //             case OpCode::WRITENL: {
+    //                 // printf("gen writenl\n");
+    //                 genWriteNL();
+    //                 // printf("gen res: %d\n", code.back());
+    //                 break;
+    //             }
+    //             case OpCode::MOVE: {
+    //                 // printf("gen move\n");
+    //                 genMove(ins, "main");
+    //                 // printf("gen res: %d\n", code.back());
+    //             }
+    //             default: {
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
 
     int ret = (49 << 26);
     code.push_back(ret);

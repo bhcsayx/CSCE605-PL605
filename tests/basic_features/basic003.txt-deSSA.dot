@@ -1,0 +1,23 @@
+diGraph G { 
+main_BB0 [shape=record, label="<b>main_BB0| {0: MOVE #51 x^0|1: MUL #2 x^0|2: MOVE %1 y^0|3: ADD x^0 #0|4: SUB y^0 #0|5: CMP %3 %4|6: BLT [1]}"];
+main_BB1 [shape=record, label="<b>main_BB1| {7: WRITE y^0|8: WRITENL }"];
+main_BB2 [shape=record, label="<b>main_BB2| {9: WRITE y^0|10: MOVE #42 x^1|11: MUL #2 x^1|12: MOVE %11 y^1|13: CMP x^1 y^1|14: BEQ [3]}"];
+main_BB3 [shape=record, label="<b>main_BB3| {15: WRITE y^1|16: WRITENL |17: RET }"];
+main_BB4 [shape=record, label="<b>main_BB4| {18: WRITE x^1|19: WRITENL |20: RET }"];
+main_BB5 [shape=record, label="<b>main_BB5| {21: RET }"];
+
+main_BB0:s -> main_BB1:n [label="branch"];
+main_BB0:s -> main_BB2:n [label="fall-through"];
+main_BB1:s -> main_BB2:n [label="fall-through"];
+main_BB2:s -> main_BB3:n [label="branch"];
+main_BB2:s -> main_BB4:n [label="fall-through"];
+main_BB1:b -> main_BB0:b [color=blue, style=dotted, label="Dom"];
+main_BB2:b -> main_BB0:b [color=blue, style=dotted, label="Dom"];
+main_BB3:b -> main_BB0:b [color=blue, style=dotted, label="Dom"];
+main_BB3:b -> main_BB2:b [color=blue, style=dotted, label="Dom"];
+main_BB4:b -> main_BB0:b [color=blue, style=dotted, label="Dom"];
+main_BB4:b -> main_BB2:b [color=blue, style=dotted, label="Dom"];
+main_BB1:b -> main_BB2:b [color=green, style=dotted, label="DF"];
+
+
+}

@@ -1,0 +1,21 @@
+diGraph G { 
+fibonacci_BB0 [shape=record, label="<b>fibonacci_BB0| {0: CMP n^-1[1] #1|1: BEQ [1]}"];
+fibonacci_BB1 [shape=record, label="<b>fibonacci_BB1| {2: RET #1}"];
+fibonacci_BB2 [shape=record, label="<b>fibonacci_BB2| {3: CMP n^-1[1] #0|4: BEQ [3]}"];
+fibonacci_BB3 [shape=record, label="<b>fibonacci_BB3| {5: RET #0}"];
+fibonacci_BB4 [shape=record, label="<b>fibonacci_BB4| {6: SUB n^-1[1] #1|7: CALL fibonacci %6|8: SUB n^-1[1] #2|9: CALL fibonacci %8|10: ADD %7[3] %9[2]|11: RET %10}"];
+main_BB0 [shape=record, label="<b>main_BB0| {12: READ |13: MOVE %12[2] input^0[2]|14: CALL fibonacci input|15: MOVE %14[1] result^0[1]|16: WRITE input^0[2]|17: WRITENL |18: WRITE result^0[1]|19: WRITENL }"];
+
+fibonacci_BB0:s -> fibonacci_BB1:n [label="branch"];
+fibonacci_BB0:s -> fibonacci_BB2:n [label="fall-through"];
+fibonacci_BB2:s -> fibonacci_BB3:n [label="branch"];
+fibonacci_BB2:s -> fibonacci_BB4:n [label="fall-through"];
+fibonacci_BB1:b -> fibonacci_BB0:b [color=blue, style=dotted, label="Dom"];
+fibonacci_BB2:b -> fibonacci_BB0:b [color=blue, style=dotted, label="Dom"];
+fibonacci_BB3:b -> fibonacci_BB0:b [color=blue, style=dotted, label="Dom"];
+fibonacci_BB3:b -> fibonacci_BB2:b [color=blue, style=dotted, label="Dom"];
+fibonacci_BB4:b -> fibonacci_BB0:b [color=blue, style=dotted, label="Dom"];
+fibonacci_BB4:b -> fibonacci_BB2:b [color=blue, style=dotted, label="Dom"];
+
+
+}

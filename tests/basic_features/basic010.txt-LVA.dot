@@ -1,0 +1,21 @@
+diGraph G { 
+fibonacci_BB0 [shape=record, label="<b>fibonacci_BB0| {0: CMP n^-1 #1 preAnalysis=\{%0 %7 %9 n^-1 \} postAnalysis=\{%7 %9 n^-1 \}|1: BEQ [1] preAnalysis=\{%7 %9 n^-1 \} postAnalysis=\{%0 %7 %9 n^-1 \}}"];
+fibonacci_BB1 [shape=record, label="<b>fibonacci_BB1| {2: RET #1 preAnalysis=\{%10 \} postAnalysis=\{%10 \}}"];
+fibonacci_BB2 [shape=record, label="<b>fibonacci_BB2| {3: CMP n^-1 #0 preAnalysis=\{%3 %7 %9 n^-1 \} postAnalysis=\{%7 %9 n^-1 \}|4: BEQ [3] preAnalysis=\{%7 %9 n^-1 \} postAnalysis=\{%3 %7 %9 n^-1 \}}"];
+fibonacci_BB3 [shape=record, label="<b>fibonacci_BB3| {5: RET #0 preAnalysis=\{%10 \} postAnalysis=\{%10 \}}"];
+fibonacci_BB4 [shape=record, label="<b>fibonacci_BB4| {6: SUB n^-1 #1 preAnalysis=\{%7 %9 n^-1 \} postAnalysis=\{%7 %9 n^-1 \}|7: CALL fibonacci %6 preAnalysis=\{%7 %9 n^-1 \} postAnalysis=\{%7 %9 n^-1 \}|8: SUB n^-1 #2 preAnalysis=\{%7 %9 \} postAnalysis=\{%7 %9 n^-1 \}|9: CALL fibonacci %8 preAnalysis=\{%7 %9 \} postAnalysis=\{%7 %9 \}|10: ADD %7 %9 preAnalysis=\{%10 \} postAnalysis=\{%7 %9 \}|11: RET %10 preAnalysis=\{%10 \} postAnalysis=\{%10 \}}"];
+main_BB0 [shape=record, label="<b>main_BB0| {12: READ  preAnalysis=\{%12 %14 \} postAnalysis=\{%14 \}|13: MOVE %12 input^0 preAnalysis=\{%14 input^0 \} postAnalysis=\{%12 %14 \}|14: CALL fibonacci input preAnalysis=\{%14 input^0 \} postAnalysis=\{%14 input^0 \}|15: MOVE %14 result^0 preAnalysis=\{input^0 result^0 \} postAnalysis=\{%14 input^0 \}|16: WRITE input^0 preAnalysis=\{input^0 result^0 \} postAnalysis=\{input^0 result^0 \}|17: WRITENL  preAnalysis=\{input^0 result^0 \} postAnalysis=\{input^0 result^0 \}|18: WRITE result^0 preAnalysis=\{input^0 result^0 \} postAnalysis=\{input^0 result^0 \}|19: WRITENL  preAnalysis=\{input^0 result^0 \} postAnalysis=\{input^0 result^0 \}}"];
+
+fibonacci_BB0:s -> fibonacci_BB1:n [label="branch"];
+fibonacci_BB0:s -> fibonacci_BB2:n [label="fall-through"];
+fibonacci_BB2:s -> fibonacci_BB3:n [label="branch"];
+fibonacci_BB2:s -> fibonacci_BB4:n [label="fall-through"];
+fibonacci_BB1:b -> fibonacci_BB0:b [color=blue, style=dotted, label="Dom"];
+fibonacci_BB2:b -> fibonacci_BB0:b [color=blue, style=dotted, label="Dom"];
+fibonacci_BB3:b -> fibonacci_BB0:b [color=blue, style=dotted, label="Dom"];
+fibonacci_BB3:b -> fibonacci_BB2:b [color=blue, style=dotted, label="Dom"];
+fibonacci_BB4:b -> fibonacci_BB0:b [color=blue, style=dotted, label="Dom"];
+fibonacci_BB4:b -> fibonacci_BB2:b [color=blue, style=dotted, label="Dom"];
+
+
+}
