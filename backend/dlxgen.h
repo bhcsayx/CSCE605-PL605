@@ -25,8 +25,8 @@ public:
     vector<int> code;
     map<string, map<string, int>> regallocs;
     map<string, short int> globals;
-    map<int, int> blkstart;
-    map<int, int> blkend;
+    map<string, map<int, int>> blkstart;
+    map<string, map<int, int>> blkend;
     string curFunc;
     int regavail;
 
@@ -42,6 +42,7 @@ public:
     void genDiv(Instruction* ins, string funcName);
     void genCmp(Instruction* ins, string funcName);
 
+    void genJmp(Instruction* ins, string funcName, int kind);
     void genRet(Instruction* ins, string funcName);
 
     void genMove(Instruction* ins, string funcName);

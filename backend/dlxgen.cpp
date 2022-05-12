@@ -399,19 +399,70 @@ void DLXGenerator::genCmp(Instruction* ins, string funcName) {
     }
 }
 
+void DLXGenerator::genJmp(Instruction* ins, string funcName, int kind) {
+    switch(kind) {
+        case 1: {
+            int jmp = (40 << 26);
+            jmp |= (27 << 21);
+            jmp |= (ins->op2->value << 16);
+            code.push_back(jmp);
+            break;
+        }
+        case 2: {
+            int jmp = (41 << 26);
+            jmp |= (27 << 21);
+            jmp |= (ins->op2->value << 16);
+            code.push_back(jmp);
+            break;
+        }
+        case 3: {
+            int jmp = (42 << 26);
+            jmp |= (27 << 21);
+            jmp |= (ins->op2->value << 16);
+            code.push_back(jmp);
+            break;
+        }
+        case 4: {
+            int jmp = (43 << 26);
+            jmp |= (27 << 21);
+            jmp |= (ins->op2->value << 16);
+            code.push_back(jmp);
+            break;
+        }
+        case 5: {
+            int jmp = (44 << 26);
+            jmp |= (27 << 21);
+            jmp |= (ins->op2->value << 16);
+            code.push_back(jmp);
+            break;
+        }
+        case 6: {
+            int jmp = (45 << 26);
+            jmp |= (27 << 21);
+            jmp |= (ins->op2->value << 16);
+            code.push_back(jmp);
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+}
+
 void DLXGenerator::genRet(Instruction* ins, string funcName) {
     if(ins->op1->type != Type::empty) {
 
     }
     else {
-
+        if(funcName == "main")
+            code.push_back((49 << 26));
     }
 }
 
 void DLXGenerator::genMove(Instruction* ins, string funcName) {
     int reg1 = regallocs[funcName][ins->op1->name];
     int reg2 = regallocs[funcName][ins->op2->name];
-
+    // printf("reg1: %d, reg2: %d\n", reg1, reg2);
     if(reg1 == -1) {
         reg1 = 27;
         int ld = (32 << 26);
@@ -419,6 +470,16 @@ void DLXGenerator::genMove(Instruction* ins, string funcName) {
         ld |= (30 << 16);
         ld |= (globals[ins->op1->name] & 0xffff);
         code.push_back(ld);
+    }
+    else if(reg1 == 0) {
+        if(ins->op1->type == Type::constVal) {
+            int add1 = ins->op1->value>=0 ? (16 << 26) : (17 << 26);
+            add1 |= (27 << 21);
+            add1 |= ins->op1->value>=0 ? ins->op1->value : -(ins->op1->value);
+            code.push_back(add1);
+            // printf("add ld1: %d\n", add1);
+            reg1 = 27;
+        }
     }
 
     if(reg2 == -1) {
@@ -484,7 +545,8 @@ void DLXGenerator::genWriteNL() {
 }
 
 void DLXGenerator::dlxgenBlk(SSABuilder builder, BasicBlock* block, string funcName, int index) {
-    blkstart[index] = code.size();
+    blkstart[funcName][index] = code.size();
+    // printf("index for blk %d is %d\n", index, blkstart[funcName][index]);
     for(auto ins: block->instructions) {
         switch(ins->opcode) {
             case OpCode::ADD: {
@@ -533,23 +595,112 @@ void DLXGenerator::dlxgenBlk(SSABuilder builder, BasicBlock* block, string funcN
                 // printf("gen move\n");
                 genMove(ins, funcName);
                 // printf("gen res: %d\n", code.back());
+                break;
             }
             case OpCode::CMP: {
-                // printf("gen move\n");
+                // printf("gen cmp\n");
                 genCmp(ins, funcName);
                 // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::BEQ: {
+                // printf("gen beq\n");
+                genJmp(ins, funcName, 1);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::BNE: {
+                // printf("gen bne\n");
+                genJmp(ins, funcName, 2);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::BLT: {
+                // printf("gen blt\n");
+                genJmp(ins, funcName, 3);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::BGE: {
+                // printf("gen bge\n");
+                genJmp(ins, funcName, 4);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::BLE: {
+                // printf("gen ble\n");
+                genJmp(ins, funcName, 5);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::BGT: {
+                // printf("gen bgt\n");
+                genJmp(ins, funcName, 6);
+                // printf("gen res: %d\n", code.back());
+                break;
+            }
+            case OpCode::RET: {
+                // printf("gen ret\n");
+                genRet(ins, funcName);
+                // printf("gen res: %d\n", code.back());
+                break;
             }
             default: {
                 break;
             }
         }
     }
+    // printf("blk %d generated %d ins before\n", index, code.size());
+    if(block->successors.size() == 0) {
+        // if(block->instructions.size() == 0) {
+        code.push_back((49 << 26));
+        // }
+    }
+    else {
+        // printf("blkstart: %s, %d\n", funcName.c_str(), block->successors.size());
+        // int fall = blkstart[funcName][block->successors[0]];
+        int jmp = (46 << 26);
+        // jmp |= (fall * 4) & 0x03ffffff;
+        code.push_back(jmp);
+    }
+    // printf("blk %d generated %d ins\n", index, code.size());
 }
 
 void DLXGenerator::dlxgenFunc(SSABuilder builder, vector<BasicBlock*>* blocks, string funcName) {
     int blkIndex = 0;
     for(auto blk: *blocks) {
         dlxgenBlk(builder, blk, funcName, blkIndex);
+        blkend[funcName][blkIndex] = code.size()-1;
+        blkIndex++;
+    }
+    blkIndex = 0;
+    for(auto blk: *blocks) {
+        int last_2 = code[blkend[funcName][blkIndex]-1];
+        // printf("opcode: %d\n", (last_2 & (0xfc000000)) >> 26);
+        if(((last_2 & (0xfc000000)) >> 26) >= 40 && ((last_2 & (0xfc000000)) >> 26) <= 45) {
+            // printf("opcode: %d\n", (last_2 & (0xfc000000)) >> 26);
+            // printf("dest blk: %d\n", (last_2 & 0x001f0000) >> 16);
+            int dest = blkstart[funcName][(blk->successors[1])];
+            // printf("dest ins index: %d, opcode: %d\n", dest, (code[dest] & 0xfc000000) >> 26);
+            int diff = dest - (blkend[funcName][blkIndex]-1);
+            // printf("cur code: %d, target code: %d, diff: %d\n",(last_2 & (0xfc000000)) >> 26, (code[dest] & 0xfc000000) >> 26, diff);
+            // printf("dest code: ");
+            // for(int i=blkstart[funcName][(last_2 & 0x001f0000) >> 16]; i<=blkend[funcName][(last_2 & 0x001f0000) >> 16]; i++){
+            //     printf("%d ", (code[i] & 0xfc000000) >> 26);
+            // }
+            // printf("\n");
+            code[blkend[funcName][blkIndex]-1] |= diff & (0xffff);
+            // printf("opcode: %d\n", (code[blkend[funcName][blkIndex]-1] & 0xfc000000) >> 26);
+        }
+        // int last = code[blkend[funcName][blkIndex]];
+        // int target = (last & 0x03ffffff);
+        // printf("fallthrough target: %d\n", target);
+        // code[blkend[funcName][blkIndex]] &= 0xfc000000;
+        if(blk->successors.size() > 0) {
+            // printf("fallthrough target: %d %d\n", (blk->successors[0]), blkstart[funcName][(blk->successors[0])]);
+            // printf("fallthrough index: %d\n", blkstart[funcName][(blk->successors[0])] - blkend[funcName][blkIndex]);
+            code[blkend[funcName][blkIndex]] |= ((blkstart[funcName][(blk->successors[0])] - blkend[funcName][blkIndex]) & 0x03ffffff);
+        }
         blkIndex++;
     }
 }
@@ -568,7 +719,7 @@ void DLXGenerator::dlxgen(SSABuilder builder) {
     auto main_blocks = builder.blocks["main"];
     dlxgenFunc(builder, main_blocks, "main");
     // add return 0 for main.
-    code.push_back((49 << 26));
+    // code.push_back((49 << 26));
 
     // for(auto blk: *main_blocks) {
     //     for(auto ins: blk->instructions) {
@@ -627,11 +778,11 @@ void DLXGenerator::dlxgen(SSABuilder builder) {
     //     }
     // }
 
-    // printf("dumping code: ");
-    // for(auto i: code) {
-    //     printf("%d ", i);
-    // }
-    // printf("\n");
+    printf("dumping code: ");
+    for(auto i: code) {
+        printf("%d ", (i & 0xfc000000) >> 26);
+    }
+    printf("\n");
 }
 
 void DLXGenerator::dump(string name) {
